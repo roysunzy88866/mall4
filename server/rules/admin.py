@@ -10,3 +10,13 @@ def is_throttled(fail_times: list[float], now: float, window_sec: int = 300, max
 def banner_count_ok(count: int) -> bool:
     """推荐位数量必须 3~5(F4a)。"""
     return 3 <= count <= 5
+
+
+_ALLOWED_IMG = {"png", "jpg", "jpeg", "gif", "webp"}
+
+
+def allowed_image_ext(filename: str) -> bool:
+    """上传文件名的扩展名是否为允许的图片格式。"""
+    if "." not in filename:
+        return False
+    return filename.rsplit(".", 1)[-1].lower() in _ALLOWED_IMG

@@ -20,3 +20,10 @@ def test_banner_count_ok():
     assert admin.banner_count_ok(5) is True
     assert admin.banner_count_ok(2) is False
     assert admin.banner_count_ok(6) is False
+
+
+def test_allowed_image_ext():
+    assert admin.allowed_image_ext("pic.png") is True
+    assert admin.allowed_image_ext("a.JPG") is True
+    assert admin.allowed_image_ext("noext") is False
+    assert admin.allowed_image_ext("evil.txt") is False

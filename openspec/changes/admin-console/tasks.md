@@ -17,14 +17,14 @@
 
 ## 4. 分类管理
 
-- [ ] 4.1 写侧 repo/service:增 / 改名 / 改排序 / 停用 / 删(删有商品→拒)
-- [ ] 4.2 `/admin/categories` 页面 + 集成测试(增、改名、停用、删空、删有商品被拒)
+- [x] 4.1 写侧 repo/service:增 / 改名 / 改排序 / 停用 / 删(删有商品→拒)
+- [x] 4.2 `/admin/categories` 页面 + 集成测试(增、改名、停用、删空、删有商品被拒)
 
 ## 5. 商品管理 + 传图
 
-- [ ] 5.1 写侧 repo/service:增 / 改 / 删;价格经 `yuan_to_cents`
-- [ ] 5.2 传图:`secure_filename` + uuid 存 uploads,记 URL,限图片扩展名
-- [ ] 5.3 `/admin/products` 页面 + 集成测试(创建含传图、改价 19.95 无误差、删商品)
+- [x] 5.1 写侧 repo/service:增 / 改 / 删;价格经 `yuan_to_cents`
+- [x] 5.2 传图:`secure_filename` + uuid 存 uploads,记 URL,限图片扩展名
+- [x] 5.3 `/admin/products` 页面 + 集成测试(创建含传图、改价 19.95 无误差、删商品)
 
 ## 6. 推荐位管理
 

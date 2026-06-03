@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block body %}
+<h4 class="mb-3">分类管理</h4>
+{% if error %}<div class="alert alert-warning">{{ error }}</div>{% endif %}
+<form class="row g-2 mb-3" method="post" action="{{ url_for('admin.category_create') }}">
+  <div class="col-auto"><input class="form-control" name="name" placeholder="新分类名"></div>
+  <div class="col-auto"><button class="btn btn-primary" type="submit">新增分类</button></div>
+</form>
+<table class="table bg-white align-middle">
+  <thead><tr><th>排序</th><th>名称</th><th>商品数</th><th>状态</th><th>操作</th></tr></thead>
+  <tbody>
+  {% for c in categories %}
+    <tr>
+      <td>
+        {{ c.sort_order }}
+        <form class="d-inline" method="post" action="{{ url_for('admin.category_move', category_id=c.id) }}">
+          <button name="direction" value="up" class="btn btn-sm btn-light" type="submit">↑</button>
+          <button name="direction" value="down" class="btn btn-sm btn-light" type="submit">↓</button>
+        </form>
+      </td>
+      <td>
+        <form class="d-inline" method="post" action="{{ url_for('admin.category_rename', category_id=c.id) }}">
+          <input class="form-control form-control-sm d-inline-block" style="width:10rem" name="name" value="{{ c.name }}">
+          <button class="btn btn-sm btn-outline-secondary" type="submit">改名</button>
+        </form>
+      </td>
+      <td>{{ counts[c.id] }}</td>
+      <td>{% if c.is_active %}启用{% else %}<span class="text-muted">停用</span>{% endif %}</td>
+      <td>
+        <form class="d-inline" method="post" action="{{ url_for('admin.category_toggle', category_id=c.id) }}">
+          <input type="hidden" name="active" value="{{ 0 if c.is_active else 1 }}">
+          <button class="btn btn-sm btn-outline-secondary" type="submit">{{ '停用' if c.is_active else '启用' }}</button>
+        </form>
+        <form class="d-inline" method="post" action="{{ url_for('admin.category_delete', category_id=c.id) }}">
+          <button class="btn btn-sm btn-outline-danger" type="submit">删除</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

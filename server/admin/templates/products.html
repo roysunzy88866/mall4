@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block body %}
+<h4 class="mb-3">商品管理</h4>
+{% if error %}<div class="alert alert-warning">{{ error }}</div>{% endif %}
+
+<form class="row g-2 mb-4" method="post" action="{{ url_for('admin.product_create') }}" enctype="multipart/form-data">
+  <div class="col"><input class="form-control" name="name" placeholder="商品名"></div>
+  <div class="col-auto">
+    <select class="form-select" name="category_id">
+      {% for c in categories %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-auto"><input class="form-control" name="price" placeholder="价格 如 19.95" style="width:9rem"></div>
+  <div class="col-auto"><input class="form-control" name="stock" placeholder="库存" style="width:6rem"></div>
+  <div class="col-auto"><input class="form-control" type="file" name="image"></div>
+  <div class="col-12"><input class="form-control" name="description" placeholder="描述"></div>
+  <div class="col-auto"><button class="btn btn-primary" type="submit">新增商品</button></div>
+</form>
+
+{% for p in products %}
+<form method="post" class="card mb-2"><div class="card-body row g-2 align-items-center">
+  <div class="col"><input class="form-control form-control-sm" name="name" value="{{ p.name }}"></div>
+  <div class="col-auto">
+    <select class="form-select form-select-sm" name="category_id">
+      {% for c in categories %}<option value="{{ c.id }}" {% if c.id == p.category_id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-auto"><input class="form-control form-control-sm" name="price" value="{{ p.price_cents | yuan }}" style="width:7rem"></div>
+  <div class="col-auto"><input class="form-control form-control-sm" name="stock" value="{{ p.stock }}" style="width:5rem"></div>
+  <div class="col-auto">
+    <button class="btn btn-sm btn-outline-primary" type="submit" formaction="{{ url_for('admin.product_update', product_id=p.id) }}">保存</button>
+    <button class="btn btn-sm btn-outline-danger" type="submit" formaction="{{ url_for('admin.product_delete', product_id=p.id) }}">删除</button>
+  </div>
+</div></form>
+{% endfor %}
+{% endblock %}
