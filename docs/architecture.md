@@ -46,6 +46,13 @@ server/
 `ui`(Compose)→ `viewmodel` → `repository` → `api`(Retrofit);本地仅存一个虚拟设备号。
 接口 DTO 与 UI Model 经 repository 显式映射(DTO ≠ Model)。
 
+**落地(car-storefront-browse,工程 `android/`,详见该 change 的 design.md):**
+- 栈:Kotlin + Compose + Retrofit/Moshi + OkHttp + Coil;手动 `ServiceLocator`(不 Hilt);minSdk 26 / compileSdk 34;JDK 17 + Gradle 8.7 + AGP 8.5.2 + Kotlin 2.0.20。
+- **状态驱动单 Activity 路由**:`StoreViewModel` 持 `route(Home/Category/Orders)` + `content` 状态,NavRail + 内容区按状态渲染;网络异常为最上层覆盖层。
+- **1920×1080 等比缩放容器**:覆盖 `LocalDensity` 使「1 设计 px==dp」,整体 letterbox 居中(`ui/ScalingContainer.kt`)。
+- **设备号注入**:OkHttp `Interceptor` 给每请求统一加 `X-Device-Id`;设备号存 SharedPreferences(只此一项)。
+- **模拟器**:1920×1080 横屏 AVD `ridemall-car`(本机无 cmdline-tools 时由克隆现有 AVD + 改 `config.ini` 分辨率/`skin.name=1920x1080`/`showDeviceFrame=no` 而来,不入库)。
+
 ## 关键数据流 · 下单闭环
 
 ```

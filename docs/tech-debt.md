@@ -28,3 +28,21 @@
 
 ## DEBT-2026-06-005 · 闭环 E2E 延后(已知,非缺陷)🟢 计划内
 - 测试方案的「API 级闭环 E2E(浏览→下单→订单可见)」依赖 `POST /api/orders`,属 `order-checkout` change。`catalog-browsing` 的「完成」= 只读侧全绿;E2E 随 `order-checkout` 落地。状态:⏳ 计划内。
+
+## DEBT-2026-06-006 · 文档断链 `docs/user-stories.md` 🟡 MINOR
+- **位置**:`docs/prototype-wireframes.md` 顶部声明「行为/验收以 `user-stories.md` 为准」,但该文件不存在。
+- **问题**:断链;线框文件指向一个不存在的真相源。当前车机端行为真相源实际是设计稿 + `openspec/specs/` + 需求共识,线框声明已与现实脱节。
+- **修复**:二选一——① 把 `prototype-wireframes.md` 标「🗄 已归档·被设计稿取代」(其失效条件已写明:设计稿采用即失效),并删掉对 user-stories 的引用;② 或补建 `user-stories.md`。建议走 ①。
+- **状态**:⏳ 未闭合(car-storefront-browse 发现,本刀未修,避免范围蔓延)。
+
+## DEBT-2026-06-007 · 车机商品卡无真实图(列表接口不返图)🟡 MINOR
+- **位置**:`server/api/routes.py` 的 `_product_json`(不含 image 字段);车机 `ui/components/ProductCard.kt` 用占位图块。
+- **问题**:`/api/home` 的 recommended 与 `/api/categories/{id}/products` 不返回商品图 URL,故车机商品卡只能显示占位图标。当前 seed 商品图本就是 `placeholder.png`,视觉无差;但若日后要卡片显示真实商品图,需后端 list 接口补 `image`(取商品主图)字段。
+- **修复**:后端 `_product_json` 增 `image`(商品主图 URL);车机 `ProductDto`/`Product` 加 imageUrl 并在卡片用 Coil 加载。属后端改动,留后续 change。
+- **状态**:⏳ 未闭合(非缺陷,本刀范围外:本刀不改后端)。
+
+## DEBT-2026-06-008 · 车机字体用系统回退(非 Oxanium/Noto)🟢 MINOR
+- **位置**:`android/app/.../ui/theme/Type.kt` 的 `BodyFamily`/`NumberFamily`。
+- **问题**:设计稿要 Oxanium(数字)+ Noto Sans SC(中文),但本机无字体文件、沙箱网络取不到,暂用系统 sans-serif + Monospace 回退(CJK 回退设计 README 已许可;数字字体为次要视觉)。
+- **修复**:把 Oxanium / Noto Sans SC 的 `.ttf` 放进 `android/app/src/main/assets/fonts/`,在 `Type.kt` 把 `BodyFamily`/`NumberFamily` 指过去(单点切换,已留好)。
+- **状态**:⏳ 未闭合(见 car-storefront-browse design.md D10)。
