@@ -32,3 +32,8 @@ local.properties
 
 # Claude 本地设置(命令与 skill 仍纳入版本管理)
 .claude/settings.local.json
+
+# 测试产物
+.coverage
+*.coverage
+htmlcov/
