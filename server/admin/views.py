@@ -10,6 +10,7 @@ from flask import (
 )
 
 from server import db
+from server.repositories import catalog_repo as cr
 from server.repositories import catalog_write_repo as cw
 from server.rules import admin as admin_rules
 from server.services import admin_catalog_service as cat_svc
@@ -194,3 +195,58 @@ def product_update(product_id):
 def product_delete(product_id):
     cat_svc.delete_product(_conn(), product_id)
     return redirect(url_for("admin.products_page"))
+
+
+# ---- 推荐位管理 ----
+@bp.get("/banners")
+@login_required
+def banners_page():
+    conn = _conn()
+    rows, banner_pids = [], set()
+    for b in cw.all_banners(conn):
+        p = cr.product_by_id(conn, b.product_id)
+        banner_pids.add(b.product_id)
+        rows.append({
+            "id": b.id, "sort_order": b.sort_order,
+            "name": p.name if p else "(已删商品)", "price_cents": p.price_cents if p else 0,
+        })
+    available = [p for p in cw.all_products_admin(conn) if p.id not in banner_pids]
+    return render_template(
+        "banners.html", rows=rows, available=available, count=len(rows), error=request.args.get("error")
+    )
+
+
+@bp.post("/banners/add")
+@login_required
+def banner_add():
+    pid = request.form.get("product_id", type=int)
+    if pid:
+        try:
+            cat_svc.add_banner(_conn(), pid)
+        except cat_svc.BannerLimit as e:
+            return redirect(url_for("admin.banners_page", error=e.msg))
+    return redirect(url_for("admin.banners_page"))
+
+
+@bp.post("/banners/<int:banner_id>/remove")
+@login_required
+def banner_remove(banner_id):
+    try:
+        cat_svc.remove_banner(_conn(), banner_id)
+    except cat_svc.BannerLimit as e:
+        return redirect(url_for("admin.banners_page", error=e.msg))
+    return redirect(url_for("admin.banners_page"))
+
+
+@bp.post("/banners/<int:banner_id>/move")
+@login_required
+def banner_move(banner_id):
+    cat_svc.move_banner(_conn(), banner_id, request.form.get("direction", "up"))
+    return redirect(url_for("admin.banners_page"))
+
+
+# ---- 订单查看 ----
+@bp.get("/orders")
+@login_required
+def orders_page():
+    return render_template("orders.html", orders=admin_service.all_orders_with_items(_conn()))

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block body %}
+<h4 class="mb-3">推荐位管理 <small class="text-muted">(当前 {{ count }} 个,需 3~5)</small></h4>
+{% if error %}<div class="alert alert-warning">{{ error }}</div>{% endif %}
+<form class="row g-2 mb-3" method="post" action="{{ url_for('admin.banner_add') }}">
+  <div class="col-auto">
+    <select class="form-select" name="product_id">
+      {% for p in available %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-auto"><button class="btn btn-primary" type="submit">加入推荐位</button></div>
+</form>
+<table class="table bg-white align-middle">
+  <thead><tr><th>顺序</th><th>商品</th><th>价格</th><th>操作</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td>{{ r.sort_order }}
+        <form class="d-inline" method="post" action="{{ url_for('admin.banner_move', banner_id=r.id) }}">
+          <button name="direction" value="up" class="btn btn-sm btn-light" type="submit">↑</button>
+          <button name="direction" value="down" class="btn btn-sm btn-light" type="submit">↓</button>
+        </form>
+      </td>
+      <td>{{ r.name }}</td>
+      <td>¥{{ r.price_cents | yuan }}</td>
+      <td>
+        <form class="d-inline" method="post" action="{{ url_for('admin.banner_remove', banner_id=r.id) }}">
+          <button class="btn btn-sm btn-outline-danger" type="submit">移出</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

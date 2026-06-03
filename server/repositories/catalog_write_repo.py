@@ -1,5 +1,5 @@
 """分类 / 商品写操作 + 后台列表查询。事务由 service 管,不自行 commit/rollback。"""
-from server.models.entities import Category, Product
+from server.models.entities import Banner, Category, Product
 
 
 def _category(row) -> Category:
@@ -97,3 +97,34 @@ def delete_product(conn, product_id: int) -> None:
     conn.execute("DELETE FROM banners WHERE product_id=?", (product_id,))
     conn.execute("DELETE FROM product_images WHERE product_id=?", (product_id,))
     conn.execute("DELETE FROM products WHERE id=?", (product_id,))
+
+
+# ---- 推荐位 ----
+def all_banners(conn) -> list[Banner]:
+    rows = conn.execute("SELECT * FROM banners ORDER BY sort_order, id").fetchall()
+    return [Banner(id=r["id"], product_id=r["product_id"], sort_order=r["sort_order"]) for r in rows]
+
+
+def banner_count(conn) -> int:
+    return conn.execute("SELECT COUNT(*) AS c FROM banners").fetchone()["c"]
+
+
+def is_product_banner(conn, product_id: int) -> bool:
+    return conn.execute("SELECT 1 FROM banners WHERE product_id=?", (product_id,)).fetchone() is not None
+
+
+def max_banner_sort(conn) -> int:
+    return conn.execute("SELECT COALESCE(MAX(sort_order), 0) AS m FROM banners").fetchone()["m"]
+
+
+def insert_banner(conn, product_id: int, sort_order: int) -> int:
+    cur = conn.execute("INSERT INTO banners (product_id, sort_order) VALUES (?,?)", (product_id, sort_order))
+    return cur.lastrowid
+
+
+def delete_banner(conn, banner_id: int) -> None:
+    conn.execute("DELETE FROM banners WHERE id=?", (banner_id,))
+
+
+def set_banner_sort(conn, banner_id: int, sort_order: int) -> None:
+    conn.execute("UPDATE banners SET sort_order=? WHERE id=?", (sort_order, banner_id))

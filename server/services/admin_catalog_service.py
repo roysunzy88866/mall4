@@ -2,6 +2,7 @@
 from decimal import InvalidOperation
 
 from server.repositories import catalog_write_repo as repo
+from server.rules import admin as admin_rules
 from server.rules import money
 
 
@@ -79,3 +80,42 @@ def update_product(conn, product_id, name, price_yuan, description, stock, categ
 def delete_product(conn, product_id: int) -> None:
     with conn:
         repo.delete_product(conn, product_id)
+
+
+# ---- 推荐位 ----
+class BannerLimit(Exception):
+    """推荐位数量 / 重复约束(接口层翻成提示)。"""
+
+    def __init__(self, msg: str):
+        super().__init__(msg)
+        self.msg = msg
+
+
+def add_banner(conn, product_id: int) -> None:
+    if repo.is_product_banner(conn, product_id):
+        raise BannerLimit("该商品已在推荐位")
+    if not admin_rules.banner_count_ok(repo.banner_count(conn) + 1):
+        raise BannerLimit("推荐位最多 5 个")
+    with conn:
+        repo.insert_banner(conn, product_id, repo.max_banner_sort(conn) + 1)
+
+
+def remove_banner(conn, banner_id: int) -> None:
+    if not admin_rules.banner_count_ok(repo.banner_count(conn) - 1):
+        raise BannerLimit("推荐位最少 3 个")
+    with conn:
+        repo.delete_banner(conn, banner_id)
+
+
+def move_banner(conn, banner_id: int, direction: str) -> None:
+    bs = repo.all_banners(conn)
+    ids = [b.id for b in bs]
+    if banner_id not in ids:
+        return
+    i = ids.index(banner_id)
+    j = i - 1 if direction == "up" else i + 1
+    if 0 <= j < len(bs):
+        a, b = bs[i], bs[j]
+        with conn:
+            repo.set_banner_sort(conn, a.id, b.sort_order)
+            repo.set_banner_sort(conn, b.id, a.sort_order)

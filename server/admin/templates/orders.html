@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block body %}
+<h4 class="mb-3">订单 <small class="text-muted">(手动 F5 看最新)</small></h4>
+<table class="table bg-white align-middle">
+  <thead><tr><th>时间</th><th>设备号</th><th>商品</th><th>金额</th><th>状态</th></tr></thead>
+  <tbody>
+  {% for ow in orders %}
+    <tr>
+      <td>{{ ow.order.created_at }}</td>
+      <td>{{ ow.order.device_id }}</td>
+      <td>{% for it in ow.items %}{{ it.product_name }} ×{{ it.qty }}{% if not loop.last %}、{% endif %}{% endfor %}</td>
+      <td>¥{{ ow.order.total_cents | yuan }}</td>
+      <td>{{ ow.order.status }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5" class="text-muted">暂无订单</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

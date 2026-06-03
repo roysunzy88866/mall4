@@ -28,14 +28,14 @@
 
 ## 6. 推荐位管理
 
-- [ ] 6.1 写侧 service:挑入 / 上移下移 / 保存校验 `banner_count_ok`
-- [ ] 6.2 `/admin/banners` 页面 + 集成测试(调序、<3 被拒、>5 被拒)
+- [x] 6.1 写侧 service:挑入 / 上移下移 / 保存校验 `banner_count_ok`
+- [x] 6.2 `/admin/banners` 页面 + 集成测试(调序、<3 被拒、>5 被拒)
 
 ## 7. 订单查看
 
-- [ ] 7.1 `/admin/orders`:全部订单倒序(时间/商品/价/设备号)+ 集成测试
+- [x] 7.1 `/admin/orders`:全部订单倒序(时间/商品/价/设备号)+ 集成测试
 
 ## 8. 校验
 
-- [ ] 8.1 全部单元 + 集成测试绿,`rules` 100% 覆盖
-- [ ] 8.2 `scripts/archive admin-console` 前置门禁通过(pytest + `openspec validate --strict`)
+- [x] 8.1 全部单元 + 集成测试绿,`rules` 100% 覆盖
+- [x] 8.2 `scripts/archive admin-console` 前置门禁通过(pytest + `openspec validate --strict`)
