@@ -10,8 +10,15 @@ fun secondsToClock(totalSeconds: Int): String {
  * 后端订单状态码 → 中文展示。未知值原样返回(第三刀扩状态机时不至于让车机崩)。
  * 第三刀会补 待发货/运输中/派送中/已签收/已取消/退货… 等。
  */
+/** 主阶段步条:码 + 中文(与后端 STAGES 对齐)。 */
+val STAGE_CODES = listOf("paid", "shipping", "delivering", "delivered")
+val STAGE_LABELS = listOf("待发货", "运输中", "派送中", "已签收")
+
+/** 当前状态在主阶段步条上的序号;分支状态(取消/退货)返回 -1。 */
+fun stageIndexOf(status: String): Int = STAGE_CODES.indexOf(status)
+
 fun orderStatusLabel(raw: String): String = when (raw) {
-    "paid" -> "已支付"
+    "paid" -> "待发货"
     "pending_ship", "待发货" -> "待发货"
     "shipping", "运输中" -> "运输中"
     "delivering", "派送中" -> "派送中"

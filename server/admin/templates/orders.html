@@ -1,20 +1,32 @@
 {% extends "base.html" %}
 {% block body %}
-<h4 class="mb-3">订单 <small class="text-muted">(手动 F5 看最新)</small></h4>
-<table class="table bg-white align-middle">
-  <thead><tr><th>时间</th><th>设备号</th><th>商品</th><th>金额</th><th>状态</th></tr></thead>
+<div class="topbar"><h1>订单</h1><span class="sub">手动刷新看最新 · 状态每 {{ step }} 秒自动推进</span></div>
+
+<div class="chips" style="margin-bottom:16px">
+  <a href="{{ url_for('admin.orders_page') }}" class="{{ 'on' if not current_status }}">全部</a>
+  {% for s in status_options %}
+    <a href="{{ url_for('admin.orders_page', status=s.status) }}" class="{{ 'on' if current_status==s.status }}">{{ s.label }}</a>
+  {% endfor %}
+</div>
+
+<div class="card2" style="padding:6px 8px">
+<table class="t">
+  <thead><tr><th>订单号</th><th>时间</th><th>设备号</th><th>商品</th><th>金额</th><th>状态</th><th></th></tr></thead>
   <tbody>
-  {% for ow in orders %}
+  {% for ow, log in rows %}
     <tr>
+      <td><b>#{{ ow.order.id }}</b></td>
       <td>{{ ow.order.created_at }}</td>
-      <td>{{ ow.order.device_id }}</td>
-      <td>{% for it in ow.items %}{{ it.product_name }} ×{{ it.qty }}{% if not loop.last %}、{% endif %}{% endfor %}</td>
+      <td style="color:var(--ink3)">{{ ow.order.device_id }}</td>
+      <td>{{ ow.items[0].product_name }}{% if ow.items|length > 1 %} 等 {{ ow.items|length }} 件{% endif %}</td>
       <td>¥{{ ow.order.total_cents | yuan }}</td>
-      <td>{{ ow.order.status }}</td>
+      <td><span class="badge2 b-{{ ow.order.status }}">{{ labels.get(ow.order.status, ow.order.status) }}</span></td>
+      <td><a class="btn2" href="{{ url_for('admin.order_detail_page', order_id=ow.order.id) }}">详情</a></td>
     </tr>
   {% else %}
-    <tr><td colspan="5" class="text-muted">暂无订单</td></tr>
+    <tr><td colspan="7" class="text-muted" style="padding:24px">暂无订单</td></tr>
   {% endfor %}
   </tbody>
 </table>
+</div>
 {% endblock %}

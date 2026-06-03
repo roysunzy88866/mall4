@@ -18,6 +18,8 @@ def create_app(config: Config | None = None, seed: bool = True) -> Flask:
     app.config["UPLOADS_DIR"] = cfg.uploads_dir
     app.config["ADMIN_USERNAME"] = cfg.admin_username
     app.config["ADMIN_PASSWORD"] = cfg.admin_password
+    app.config["STATUS_STEP_SECONDS"] = cfg.status_step_seconds
+    app.config["RETURN_WINDOW_SECONDS"] = cfg.return_window_seconds
     app.config["LOGIN_ATTEMPTS"] = {}  # {ip: [epoch 秒]} 内存限速记录
     app.jinja_env.filters["yuan"] = money.cents_to_yuan
 

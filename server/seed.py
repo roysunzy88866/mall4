@@ -56,11 +56,16 @@ def seed_if_empty(conn, uploads_dir: str) -> None:
     for i, pkey in enumerate(BANNER_PIDS, start=1):
         conn.execute("INSERT INTO banners (product_id, sort_order) VALUES (?,?)", (pid[pkey], i))
 
-    for pkey, qty, when in SEED_ORDERS:
+    # 预置订单铺开各阶段(manual=1 定格,让后台一开就有层次,不被时间推到全已签收)
+    _seed_statuses = ["paid", "shipping", "delivering", "delivered", "delivered"]
+    for idx, (pkey, qty, when) in enumerate(SEED_ORDERS):
         row = conn.execute("SELECT name, price_cents FROM products WHERE id=?", (pid[pkey],)).fetchone()
+        st = _seed_statuses[idx % len(_seed_statuses)]
+        delivered_at = when if st == "delivered" else None
         conn.execute(
-            "INSERT INTO orders (device_id, status, total_cents, created_at) VALUES (?,?,?,?)",
-            ("demo-seed-device", "paid", row["price_cents"] * qty, when),
+            "INSERT INTO orders (device_id, status, total_cents, created_at, clock_base_at, manual, delivered_at) "
+            "VALUES (?,?,?,?,?,1,?)",
+            ("demo-seed-device", st, row["price_cents"] * qty, when, when, delivered_at),
         )
         oid = _last_id(conn)
         conn.execute(

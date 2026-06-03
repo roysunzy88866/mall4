@@ -18,8 +18,10 @@ def order_count(conn) -> int:
 
 
 def revenue_cents(conn) -> int:
+    # 营业额 = 已支付订单合计,扣除已退款/已取消(共识 A13)。
     return conn.execute(
-        "SELECT COALESCE(SUM(total_cents), 0) AS s FROM orders WHERE status='paid'"
+        "SELECT COALESCE(SUM(total_cents), 0) AS s FROM orders "
+        "WHERE status NOT IN ('cancelled', 'refunded')"
     ).fetchone()["s"]
 
 

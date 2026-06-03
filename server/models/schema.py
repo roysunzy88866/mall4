@@ -38,11 +38,14 @@ CREATE TABLE IF NOT EXISTS banners (
 );
 
 CREATE TABLE IF NOT EXISTS orders (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  device_id   TEXT    NOT NULL,
-  status      TEXT    NOT NULL DEFAULT 'paid',
-  total_cents INTEGER NOT NULL,
-  created_at  TEXT    NOT NULL
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  device_id     TEXT    NOT NULL,
+  status        TEXT    NOT NULL DEFAULT 'paid',
+  total_cents   INTEGER NOT NULL,
+  created_at    TEXT    NOT NULL,
+  clock_base_at TEXT,                       -- 状态机推进基准(默认=created_at,后台快进回拨)
+  manual        INTEGER NOT NULL DEFAULT 0, -- 1=被管理员接管,停自动推进
+  delivered_at  TEXT                        -- 到达已签收时刻(第四刀 7 天退货窗口用)
 );
 
 CREATE TABLE IF NOT EXISTS order_items (

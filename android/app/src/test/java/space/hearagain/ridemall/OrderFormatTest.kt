@@ -15,7 +15,7 @@ class OrderFormatTest {
     }
 
     @Test fun status_label_maps_known_and_passes_unknown() {
-        assertEquals("已支付", orderStatusLabel("paid"))
+        assertEquals("待发货", orderStatusLabel("paid"))
         assertEquals("已签收", orderStatusLabel("delivered"))
         assertEquals("已退款", orderStatusLabel("refunded"))
         assertEquals("某新状态", orderStatusLabel("某新状态")) // 未知原样返回

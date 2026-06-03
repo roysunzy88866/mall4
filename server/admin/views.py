@@ -12,9 +12,12 @@ from flask import (
 from server import db
 from server.repositories import catalog_repo as cr
 from server.repositories import catalog_write_repo as cw
+from server.repositories import orders_repo
 from server.rules import admin as admin_rules
+from server.rules import lifecycle as lc
 from server.services import admin_catalog_service as cat_svc
 from server.services import admin_service
+from server.services import lifecycle_service as life_svc
 
 bp = Blueprint("admin", __name__, url_prefix="/admin", template_folder="templates")
 
@@ -27,6 +30,10 @@ def _conn():
 
 def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _step() -> int:
+    return current_app.config.get("STATUS_STEP_SECONDS", 30)
 
 
 def login_required(view):
@@ -68,7 +75,17 @@ def logout():
 @bp.route("/")
 @login_required
 def dashboard():
-    return render_template("dashboard.html", stats=admin_service.dashboard_stats(_conn()))
+    conn = _conn()
+    stats = admin_service.dashboard_stats(conn)
+    # 订单状态分布(中文标签)
+    dist = {}
+    for o in orders_repo.all_orders(conn):
+        dist[o.status] = dist.get(o.status, 0) + 1
+    status_dist = [
+        {"status": s, "label": lc.STAGE_LABELS.get(s, s), "count": c}
+        for s, c in sorted(dist.items(), key=lambda kv: lc.stage_index(kv[0]))
+    ]
+    return render_template("dashboard.html", stats=stats, status_dist=status_dist)
 
 
 # ---- 分类管理 ----
@@ -245,8 +262,54 @@ def banner_move(banner_id):
     return redirect(url_for("admin.banners_page"))
 
 
-# ---- 订单查看 ----
+# ---- 订单管理(状态机 + 物流) ----
+def _status_options():
+    return [{"status": s, "label": lc.STAGE_LABELS[s]} for s in lc.STAGES]
+
+
 @bp.get("/orders")
 @login_required
 def orders_page():
-    return render_template("orders.html", orders=admin_service.all_orders_with_items(_conn()))
+    status_filter = request.args.get("status") or None
+    rows = life_svc.admin_list(_conn(), _now(), _step(), status_filter)
+    return render_template(
+        "orders.html", rows=rows, labels=lc.STAGE_LABELS,
+        status_options=_status_options(), current_status=status_filter, step=_step(),
+    )
+
+
+@bp.get("/orders/<int:order_id>")
+@login_required
+def order_detail_page(order_id):
+    result = life_svc.order_detail(_conn(), order_id, _now(), _step())
+    if result is None:
+        return redirect(url_for("admin.orders_page"))
+    ow, logistics = result
+    return render_template(
+        "order_detail.html", ow=ow, logistics=logistics, labels=lc.STAGE_LABELS,
+        stages=lc.STAGES, status_options=_status_options(),
+        stage_index=lc.stage_index(ow.order.status), step=_step(),
+    )
+
+
+@bp.post("/orders/<int:order_id>/advance")
+@login_required
+def order_advance(order_id):
+    life_svc.admin_advance_one(_conn(), order_id, _step())
+    return redirect(url_for("admin.order_detail_page", order_id=order_id))
+
+
+@bp.post("/orders/<int:order_id>/deliver")
+@login_required
+def order_deliver(order_id):
+    life_svc.admin_advance_delivered(_conn(), order_id, _now(), _step())
+    return redirect(url_for("admin.order_detail_page", order_id=order_id))
+
+
+@bp.post("/orders/<int:order_id>/status")
+@login_required
+def order_set_status(order_id):
+    status = request.form.get("status", "")
+    if status in lc.STAGES:
+        life_svc.admin_set_status(_conn(), order_id, status, _now())
+    return redirect(url_for("admin.order_detail_page", order_id=order_id))

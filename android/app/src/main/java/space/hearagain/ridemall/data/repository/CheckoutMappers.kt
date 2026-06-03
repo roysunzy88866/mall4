@@ -33,10 +33,14 @@ fun OrderItemDto.toModel(baseUrl: String): OrderItem = OrderItem(
 
 fun OrderDto.toModel(baseUrl: String): Order = Order(
     id = id,
+    status = status,
     statusLabel = orderStatusLabel(status),
     createdAt = createdAt,
     totalLabel = priceLabel(total),
     items = items.map { it.toModel(baseUrl) },
+    logistics = logistics.map {
+        space.hearagain.ridemall.model.LogisticsNode(it.label, it.reached, it.at)
+    },
 )
 
 /** 下单草稿行 → 请求体(image 原样上送,后端存什么车机就显示什么)。 */

@@ -65,6 +65,9 @@ class Order:
     status: str
     total_cents: int
     created_at: str
+    clock_base_at: str | None = None
+    manual: int = 0
+    delivered_at: str | None = None
 
 
 @dataclass(frozen=True)

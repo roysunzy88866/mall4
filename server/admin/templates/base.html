@@ -3,25 +3,81 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RIDEMALL 后台</title>
+  <title>RIDEMALL 管理后台</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f4f6f9; --panel:#ffffff; --ink:#1f2a37; --ink2:#6b7686; --ink3:#9aa4b2;
+      --line:#e7ebf0; --accent:#0fb6a6; --accent-ink:#06302b; --accent-soft:#e7f8f5;
+      --blue:#3b82f6; --indigo:#6366f1; --green:#16a34a; --amber:#f59e0b; --red:#ef4444; --gray:#94a3b8;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}
+    a{text-decoration:none;color:inherit}
+    .layout{display:flex;min-height:100vh}
+    .side{width:230px;background:var(--panel);border-right:1px solid var(--line);position:fixed;top:0;bottom:0;left:0;padding:22px 14px;display:flex;flex-direction:column}
+    .brand{display:flex;align-items:center;gap:10px;padding:4px 10px 22px;font-weight:800;font-size:19px;letter-spacing:.5px}
+    .brand .dot{width:26px;height:26px;border-radius:8px;background:var(--accent)}
+    .brand .mall{color:var(--accent)}
+    .nav-item{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:10px;color:var(--ink2);font-weight:600;font-size:15px;margin-bottom:4px}
+    .nav-item .ico{width:20px;text-align:center}
+    .nav-item:hover{background:#f1f4f8}
+    .nav-item.active{background:var(--accent-soft);color:var(--accent)}
+    .side .logout{margin-top:auto;color:var(--ink3);font-size:14px;padding:11px 14px}
+    .main{margin-left:230px;flex:1;padding:26px 34px}
+    .topbar{display:flex;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:8px}
+    .topbar h1{font-size:24px;font-weight:800;margin:0}
+    .topbar .sub{color:var(--ink3);margin-left:4px;font-size:14px}
+    .card2{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+    .stat .v{font-size:30px;font-weight:800}
+    .stat .k{color:var(--ink3);font-size:14px;margin-top:4px}
+    .stat .v.accent{color:var(--accent)}
+    table.t{width:100%;border-collapse:separate;border-spacing:0}
+    table.t th{text-align:left;color:var(--ink3);font-weight:600;font-size:13px;padding:10px 14px;border-bottom:1px solid var(--line)}
+    table.t td{padding:13px 14px;border-bottom:1px solid var(--line);font-size:15px}
+    table.t tr:last-child td{border-bottom:none}
+    table.t tr:hover td{background:#fafbfc}
+    .badge2{display:inline-block;padding:4px 11px;border-radius:999px;font-size:13px;font-weight:600}
+    .b-paid{background:#eef2f7;color:#64748b}
+    .b-shipping{background:#e8f0fe;color:var(--blue)}
+    .b-delivering{background:#eef0ff;color:var(--indigo)}
+    .b-delivered{background:#e8f7ee;color:var(--green)}
+    .b-cancelled{background:#fef0f0;color:var(--red)}
+    .b-return_review{background:#fff5e6;color:var(--amber)}
+    .b-returning{background:#fff0e6;color:#ea7317}
+    .b-refunded{background:var(--accent-soft);color:var(--accent)}
+    .b-return_rejected{background:#fef0f0;color:var(--red)}
+    .btn2{display:inline-block;padding:8px 16px;border-radius:9px;font-weight:600;font-size:14px;border:1px solid var(--line);background:#fff;cursor:pointer}
+    .btn2:hover{background:#f6f8fa}
+    .btn2.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .btn2.accent:hover{filter:brightness(.96)}
+    .chips a{display:inline-block;padding:7px 14px;border-radius:999px;border:1px solid var(--line);margin-right:8px;margin-bottom:6px;font-size:14px;font-weight:600;color:var(--ink2)}
+    .chips a.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  </style>
 </head>
-<body class="bg-light">
-<nav class="navbar navbar-dark bg-dark px-3">
-  <span class="navbar-brand mb-0">RIDEMALL 后台</span>
-  {% if session.get('admin') %}
-  <div class="ms-auto">
-    <a class="btn btn-sm btn-outline-light" href="{{ url_for('admin.dashboard') }}">仪表盘</a>
-    <a class="btn btn-sm btn-outline-light" href="{{ url_for('admin.categories_page') }}">分类</a>
-    <a class="btn btn-sm btn-outline-light" href="{{ url_for('admin.products_page') }}">商品</a>
-    <a class="btn btn-sm btn-outline-light" href="{{ url_for('admin.banners_page') }}">推荐位</a>
-    <a class="btn btn-sm btn-outline-light" href="{{ url_for('admin.orders_page') }}">订单</a>
-    <a class="btn btn-sm btn-outline-light" href="{{ url_for('admin.logout') }}">退出</a>
-  </div>
-  {% endif %}
-</nav>
-<main class="container py-4">
-  {% block body %}{% endblock %}
+<body>
+{% if session.get('admin') %}
+{% set ep = request.endpoint or '' %}
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><span class="dot"></span>RIDE<span class="mall">MALL</span></div>
+    <a class="nav-item {{ 'active' if ep=='admin.dashboard' }}" href="{{ url_for('admin.dashboard') }}"><span class="ico">📊</span>仪表盘</a>
+    <a class="nav-item {{ 'active' if ep=='admin.categories_page' }}" href="{{ url_for('admin.categories_page') }}"><span class="ico">🗂</span>分类</a>
+    <a class="nav-item {{ 'active' if ep=='admin.products_page' }}" href="{{ url_for('admin.products_page') }}"><span class="ico">📦</span>商品</a>
+    <a class="nav-item {{ 'active' if ep=='admin.banners_page' }}" href="{{ url_for('admin.banners_page') }}"><span class="ico">⭐</span>推荐位</a>
+    <a class="nav-item {{ 'active' if ep.startswith('admin.order') }}" href="{{ url_for('admin.orders_page') }}"><span class="ico">🧾</span>订单</a>
+    {% block extranav %}{% endblock %}
+    <a class="logout" href="{{ url_for('admin.logout') }}">↩ 退出登录</a>
+  </aside>
+  <main class="main">
+    {% block body %}{% endblock %}
+  </main>
+</div>
+{% else %}
+<main class="container py-5" style="max-width:420px">
+  {% block login %}{% endblock %}
 </main>
+{% endif %}
 </body>
 </html>

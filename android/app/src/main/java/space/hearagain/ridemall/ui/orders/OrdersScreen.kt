@@ -2,6 +2,7 @@ package space.hearagain.ridemall.ui.orders
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +38,7 @@ import space.hearagain.ridemall.ui.theme.RmDimens
 import space.hearagain.ridemall.ui.theme.RmType
 
 @Composable
-fun OrdersScreen(orders: List<Order>, modifier: Modifier = Modifier) {
+fun OrdersScreen(orders: List<Order>, onOrderClick: (Int) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxSize()) {
         Row(verticalAlignment = Alignment.Bottom) {
             Text("我的订单", style = RmType.PageTitle, color = RmColor.Text1)
@@ -51,7 +52,7 @@ fun OrdersScreen(orders: List<Order>, modifier: Modifier = Modifier) {
         }
         Column(modifier = Modifier.weight(1f).widthIn(max = 1140.dp).verticalScroll(rememberScrollState())) {
             orders.forEach { order ->
-                OrderCard(order)
+                OrderCard(order, onClick = { onOrderClick(order.id) })
                 Spacer(Modifier.height(22.dp))
             }
         }
@@ -59,10 +60,11 @@ fun OrdersScreen(orders: List<Order>, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun OrderCard(order: Order) {
+private fun OrderCard(order: Order, onClick: () -> Unit) {
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(RmDimens.RadPanel)).background(RmColor.Card)
-            .border(1.dp, RmColor.Line, RoundedCornerShape(RmDimens.RadPanel)).padding(24.dp),
+            .border(1.dp, RmColor.Line, RoundedCornerShape(RmDimens.RadPanel))
+            .clickable(onClick = onClick).padding(24.dp),
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(order.createdAt, style = RmType.NavItem, color = RmColor.Text2)

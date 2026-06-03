@@ -36,6 +36,7 @@ sealed interface Route {
     data object Cart : Route
     data object Confirm : Route
     data object Orders : Route
+    data class OrderDetail(val orderId: Int) : Route
 }
 
 sealed interface Overlay {
@@ -53,6 +54,7 @@ sealed interface ContentState {
     data object CartView : ContentState
     data object ConfirmView : ContentState
     data class OrdersLoaded(val orders: List<Order>) : ContentState
+    data class OrderDetailLoaded(val order: Order) : ContentState
     data object NetworkError : ContentState
 }
 
@@ -245,6 +247,17 @@ class StoreViewModel(private val repo: StoreRepository) : ViewModel() {
         }
     }
 
+    fun openOrderDetail(orderId: Int) {
+        _state.update { it.copy(route = Route.OrderDetail(orderId), content = ContentState.Loading) }
+        viewModelScope.launch {
+            runCatching { repo.orderDetail(orderId) }
+                .onSuccess { o -> _state.update { it.copy(content = ContentState.OrderDetailLoaded(o)) } }
+                .onFailure { _state.update { it.copy(content = ContentState.NetworkError) } }
+        }
+    }
+
+    fun backFromOrderDetail() = openOrders()
+
     fun retry() {
         if (_state.value.categories.isEmpty()) { loadInitial(); return }
         when (val r = _state.value.route) {
@@ -252,6 +265,7 @@ class StoreViewModel(private val repo: StoreRepository) : ViewModel() {
             is Route.Category -> openCategory(NavCategory(r.id, r.name))
             is Route.Detail -> openDetail(r.productId)
             is Route.Orders -> openOrders()
+            is Route.OrderDetail -> openOrderDetail(r.orderId)
             else -> openHome()
         }
     }

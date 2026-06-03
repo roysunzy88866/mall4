@@ -40,11 +40,20 @@ data class OrderDraft(
     val totalLabel: String get() = "¥%.2f".format(totalCents / 100.0)
 }
 
-/** 已下单订单(从后端拉)。 */
+/** 物流时间线节点。 */
+data class LogisticsNode(
+    val label: String,
+    val reached: Boolean,
+    val at: String?,
+)
+
+/** 已下单订单(从后端拉)。`status` 为原始码(算步条用),`statusLabel` 为中文。 */
 data class Order(
     val id: Int,
+    val status: String,
     val statusLabel: String,
     val createdAt: String,
     val totalLabel: String,
     val items: List<OrderItem>,
+    val logistics: List<LogisticsNode> = emptyList(),
 )

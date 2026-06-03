@@ -8,6 +8,7 @@ from server import db
 from server.models.entities import OrderLineInput
 from server.rules import money
 from server.services import catalog_service as svc
+from server.services import lifecycle_service as life_svc
 from server.services import order_service as order_svc
 
 bp = Blueprint("api", __name__, url_prefix="/api")
@@ -17,6 +18,10 @@ def _conn():
     if "conn" not in g:
         g.conn = db.connect(current_app.config["DB_PATH"])
     return g.conn
+
+
+def _step() -> int:
+    return current_app.config.get("STATUS_STEP_SECONDS", 30)
 
 
 def _yuan(cents: int) -> str:
@@ -49,15 +54,16 @@ def _banner_json(b) -> dict:
     }
 
 
-def _order_json(ow) -> dict:
+def _order_json(ow, logistics=None) -> dict:
     o = ow.order
-    return {
+    payload = {
         "id": o.id,
         "device_id": o.device_id,
         "status": o.status,
         "created_at": o.created_at,
         "total": _yuan(o.total_cents),
         "total_cents": o.total_cents,
+        "logistics": logistics or [],
         "items": [
             {
                 "product_id": it.product_id,
@@ -70,6 +76,7 @@ def _order_json(ow) -> dict:
             for it in ow.items
         ],
     }
+    return payload
 
 
 @bp.get("/home")
@@ -137,4 +144,14 @@ def list_orders():
     device_id = request.headers.get("X-Device-Id")
     if not device_id:
         return jsonify([])
-    return jsonify([_order_json(o) for o in order_svc.list_orders(_conn(), device_id)])
+    rows = life_svc.list_orders(_conn(), device_id, _now(), _step())
+    return jsonify([_order_json(ow, log) for (ow, log) in rows])
+
+
+@bp.get("/orders/<int:order_id>")
+def order_detail(order_id: int):
+    result = life_svc.order_detail(_conn(), order_id, _now(), _step())
+    if result is None:
+        return jsonify({"error": "订单不存在"}), 404
+    ow, log = result
+    return jsonify(_order_json(ow, log))

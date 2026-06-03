@@ -15,6 +15,8 @@ class Config:
     secret_key: str = "dev-insecure-secret-change-via-env"
     admin_username: str = "admin"
     admin_password: str = ""  # 必须由 env 提供;为空 = 禁止登录(不把口令硬编码进代码)
+    status_step_seconds: int = 30  # 订单状态机每阶段自动推进间隔(演示可配)
+    return_window_seconds: int = 7 * 86400  # 7 天无理由退货窗口(第四刀用,演示可配)
 
 
 def load_config() -> Config:
@@ -26,4 +28,6 @@ def load_config() -> Config:
         secret_key=os.environ.get("RIDEMALL_SECRET_KEY", "dev-insecure-secret-change-via-env"),
         admin_username=os.environ.get("RIDEMALL_ADMIN_USER", "admin"),
         admin_password=os.environ.get("RIDEMALL_ADMIN_PASSWORD", ""),
+        status_step_seconds=int(os.environ.get("RIDEMALL_STATUS_STEP_SECONDS", "30")),
+        return_window_seconds=int(os.environ.get("RIDEMALL_RETURN_WINDOW_SECONDS", str(7 * 86400))),
     )

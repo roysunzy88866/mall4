@@ -27,4 +27,7 @@ interface ApiService {
 
     @GET("api/orders")
     suspend fun orders(): List<OrderDto>
+
+    @GET("api/orders/{id}")
+    suspend fun orderDetail(@Path("id") orderId: Int): OrderDto
 }

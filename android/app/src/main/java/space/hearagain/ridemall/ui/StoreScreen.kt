@@ -31,6 +31,7 @@ import space.hearagain.ridemall.ui.checkout.SuccessOverlay
 import space.hearagain.ridemall.ui.common.NetworkErrorOverlay
 import space.hearagain.ridemall.ui.detail.DetailScreen
 import space.hearagain.ridemall.ui.home.HomeScreen
+import space.hearagain.ridemall.ui.orders.OrderDetailScreen
 import space.hearagain.ridemall.ui.orders.OrdersScreen
 import space.hearagain.ridemall.ui.theme.RmColor
 import space.hearagain.ridemall.ui.theme.RmDimens
@@ -102,7 +103,14 @@ fun StoreScreen(
                     is ContentState.ConfirmView -> state.draft?.let {
                         ConfirmScreen(draft = it, onBack = viewModel::backFromConfirm, onPay = viewModel::goPay)
                     }
-                    is ContentState.OrdersLoaded -> OrdersScreen(content.orders)
+                    is ContentState.OrdersLoaded -> OrdersScreen(
+                        orders = content.orders,
+                        onOrderClick = { viewModel.openOrderDetail(it) },
+                    )
+                    is ContentState.OrderDetailLoaded -> OrderDetailScreen(
+                        order = content.order,
+                        onBack = viewModel::backFromOrderDetail,
+                    )
                     is ContentState.NetworkError -> {}
                 }
 

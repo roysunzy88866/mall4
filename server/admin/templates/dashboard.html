@@ -1,32 +1,39 @@
 {% extends "base.html" %}
 {% block body %}
-<h4 class="mb-3">仪表盘</h4>
-<div class="row g-3 mb-4">
-  <div class="col">
-    <div class="card text-center"><div class="card-body">
-      <div class="h2 mb-0">{{ stats.product_count }}</div><div class="text-muted">商品数</div>
-    </div></div>
+<div class="topbar"><h1>仪表盘</h1><span class="sub">RIDEMALL 运营总览</span></div>
+
+<div class="stat-grid">
+  <div class="card2 stat"><div class="v">{{ stats.product_count }}</div><div class="k">商品数</div></div>
+  <div class="card2 stat"><div class="v">{{ stats.order_count }}</div><div class="k">订单数</div></div>
+  <div class="card2 stat"><div class="v accent">¥{{ stats.revenue_cents | yuan }}</div><div class="k">营业额(扣退款/取消)</div></div>
+  <div class="card2 stat"><div class="v">{{ status_dist | selectattr('status','equalto','return_review') | map(attribute='count') | sum }}</div><div class="k">退货待审</div></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 2fr;gap:18px">
+  <div class="card2">
+    <div style="font-weight:700;margin-bottom:14px">订单状态分布</div>
+    {% for d in status_dist %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
+      <span class="badge2 b-{{ d.status }}">{{ d.label }}</span>
+      <span style="font-weight:700">{{ d.count }}</span>
+    </div>
+    {% else %}<div class="text-muted">暂无订单</div>{% endfor %}
   </div>
-  <div class="col">
-    <div class="card text-center"><div class="card-body">
-      <div class="h2 mb-0">{{ stats.order_count }}</div><div class="text-muted">订单数</div>
-    </div></div>
-  </div>
-  <div class="col">
-    <div class="card text-center"><div class="card-body">
-      <div class="h2 mb-0">¥{{ stats.revenue_cents | yuan }}</div><div class="text-muted">营业额</div>
-    </div></div>
+  <div class="card2">
+    <div style="font-weight:700;margin-bottom:8px">最近 5 笔订单</div>
+    <table class="t">
+      <thead><tr><th>时间</th><th>设备号</th><th>金额</th><th>状态</th></tr></thead>
+      <tbody>
+      {% for o in stats.recent_orders %}
+        <tr>
+          <td>{{ o.created_at }}</td>
+          <td style="color:var(--ink3)">{{ o.device_id }}</td>
+          <td>¥{{ o.total_cents | yuan }}</td>
+          <td><span class="badge2 b-{{ o.status }}">{{ o.status }}</span></td>
+        </tr>
+      {% else %}<tr><td colspan="4" class="text-muted">暂无订单</td></tr>{% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
-<h6>最近 5 笔订单</h6>
-<table class="table table-sm bg-white align-middle">
-  <thead><tr><th>时间</th><th>设备号</th><th>金额</th><th>状态</th></tr></thead>
-  <tbody>
-  {% for o in stats.recent_orders %}
-    <tr><td>{{ o.created_at }}</td><td>{{ o.device_id }}</td><td>¥{{ o.total_cents | yuan }}</td><td>{{ o.status }}</td></tr>
-  {% else %}
-    <tr><td colspan="4" class="text-muted">暂无订单</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
 {% endblock %}

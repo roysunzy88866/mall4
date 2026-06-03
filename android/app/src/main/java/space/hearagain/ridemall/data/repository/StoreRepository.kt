@@ -31,4 +31,6 @@ class StoreRepository(
         api.createOrder(items.toCreateBody()).toModel(baseUrl)
 
     suspend fun orders(): List<Order> = api.orders().map { it.toModel(baseUrl) }
+
+    suspend fun orderDetail(orderId: Int): Order = api.orderDetail(orderId).toModel(baseUrl)
 }

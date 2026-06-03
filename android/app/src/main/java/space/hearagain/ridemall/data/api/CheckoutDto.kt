@@ -33,6 +33,7 @@ data class OrderDto(
     val total: String,
     @Json(name = "total_cents") val totalCents: Int,
     val items: List<OrderItemDto> = emptyList(),
+    val logistics: List<LogisticsNodeDto> = emptyList(),
 )
 
 data class OrderItemDto(
@@ -42,4 +43,10 @@ data class OrderItemDto(
     val price: String,
     @Json(name = "price_cents") val priceCents: Int,
     val qty: Int,
+)
+
+data class LogisticsNodeDto(
+    val label: String,
+    val reached: Boolean,
+    val at: String?,
 )
