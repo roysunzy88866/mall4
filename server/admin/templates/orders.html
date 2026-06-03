@@ -20,7 +20,7 @@
       <td style="color:var(--ink3)">{{ ow.order.device_id }}</td>
       <td>{{ ow.items[0].product_name }}{% if ow.items|length > 1 %} 等 {{ ow.items|length }} 件{% endif %}</td>
       <td>¥{{ ow.order.total_cents | yuan }}</td>
-      <td><span class="badge2 b-{{ ow.order.status }}">{{ labels.get(ow.order.status, ow.order.status) }}</span></td>
+      <td><span class="badge2 b-{{ ow.order.status }}">{{ ow.order.status | statuslabel }}</span></td>
       <td><a class="btn2" href="{{ url_for('admin.order_detail_page', order_id=ow.order.id) }}">详情</a></td>
     </tr>
   {% else %}

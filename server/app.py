@@ -6,6 +6,7 @@ from server import db
 from server.admin.views import bp as admin_bp
 from server.api.routes import bp as api_bp
 from server.config import Config, load_config
+from server.rules import lifecycle as lc
 from server.rules import money
 from server.seed import seed_if_empty
 
@@ -22,6 +23,7 @@ def create_app(config: Config | None = None, seed: bool = True) -> Flask:
     app.config["RETURN_WINDOW_SECONDS"] = cfg.return_window_seconds
     app.config["LOGIN_ATTEMPTS"] = {}  # {ip: [epoch 秒]} 内存限速记录
     app.jinja_env.filters["yuan"] = money.cents_to_yuan
+    app.jinja_env.filters["statuslabel"] = lc.status_label  # 状态码→中文(含分支态)
 
     conn = db.connect(cfg.db_path)
     db.init_schema(conn)

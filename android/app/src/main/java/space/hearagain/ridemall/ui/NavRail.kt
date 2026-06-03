@@ -42,8 +42,10 @@ import space.hearagain.ridemall.viewmodel.Route
 fun NavRail(
     categories: List<NavCategory>,
     route: Route,
+    cartCount: Int,
     onHome: () -> Unit,
     onCategory: (NavCategory) -> Unit,
+    onCart: () -> Unit,
     onOrders: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -81,12 +83,19 @@ fun NavRail(
             }
         }
 
-        // 分隔线 + 订单(固定末)
+        // 分隔线 + 购物车 + 订单(固定末)
         Spacer(
             Modifier
                 .fillMaxWidth()
                 .height(1.dp)
                 .background(RmColor.LineSoft),
+        )
+        Spacer(Modifier.height(RmDimens.NavItemGap))
+        NavItem(
+            label = "购物车",
+            selected = route is Route.Cart,
+            onClick = onCart,
+            badge = cartCount,
         )
         Spacer(Modifier.height(RmDimens.NavItemGap))
         NavItem(
@@ -118,7 +127,7 @@ private fun BrandHeader() {
 }
 
 @Composable
-private fun NavItem(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun NavItem(label: String, selected: Boolean, onClick: () -> Unit, badge: Int = 0) {
     val bg = if (selected) RmColor.AccentSoft else Color.Transparent
     val border = if (selected) RmColor.AccentLine else Color.Transparent
     val contentColor = if (selected) RmColor.Accent else RmColor.Text2
@@ -149,6 +158,13 @@ private fun NavItem(label: String, selected: Boolean, onClick: () -> Unit) {
                 color = textColor,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             )
+            if (badge > 0) {
+                Spacer(Modifier.weight(1f))
+                Box(
+                    Modifier.size(28.dp).clip(RoundedCornerShape(RmDimens.RadPill)).background(RmColor.Accent),
+                    contentAlignment = Alignment.Center,
+                ) { Text("$badge", style = RmType.CardLink, color = RmColor.AccentInk) }
+            }
         }
         // 选中态左侧贴边竖条
         if (selected) {

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -21,6 +22,7 @@ fun navIconFor(label: String): ImageVector = when (label) {
     "户外旅行" -> Icons.Filled.Terrain
     "3C数码" -> Icons.Filled.Memory
     "品质生活" -> Icons.Filled.LocalCafe
+    "购物车" -> Icons.Filled.ShoppingCart
     "订单" -> Icons.Filled.ReceiptLong
     else -> Icons.Filled.Category
 }

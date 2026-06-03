@@ -29,7 +29,7 @@
           <td>{{ o.created_at }}</td>
           <td style="color:var(--ink3)">{{ o.device_id }}</td>
           <td>¥{{ o.total_cents | yuan }}</td>
-          <td><span class="badge2 b-{{ o.status }}">{{ o.status }}</span></td>
+          <td><span class="badge2 b-{{ o.status }}">{{ o.status | statuslabel }}</span></td>
         </tr>
       {% else %}<tr><td colspan="4" class="text-muted">暂无订单</td></tr>{% endfor %}
       </tbody>

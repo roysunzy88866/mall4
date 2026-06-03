@@ -54,8 +54,10 @@ fun StoreScreen(
             NavRail(
                 categories = state.categories,
                 route = state.route,
+                cartCount = cartBadgeCount(state.cart),
                 onHome = viewModel::openHome,
                 onCategory = viewModel::openCategory,
+                onCart = viewModel::openCart,
                 onOrders = viewModel::openOrders,
             )
             Box(
@@ -115,15 +117,6 @@ fun StoreScreen(
                     )
                     is ContentState.NetworkError -> {}
                 }
-
-                // 右上角购物车入口 + 角标(覆盖层出现时隐藏)
-                if (state.overlay is Overlay.None && state.content !is ContentState.CartView) {
-                    CartFab(
-                        count = cartBadgeCount(state.cart),
-                        onClick = viewModel::openCart,
-                        modifier = Modifier.align(Alignment.TopEnd),
-                    )
-                }
             }
         }
 
@@ -140,27 +133,6 @@ fun StoreScreen(
             is Overlay.Success -> SuccessOverlay(onDone = viewModel::finishSuccess)
             is Overlay.None -> if (state.content is ContentState.NetworkError) {
                 NetworkErrorOverlay(onRetry = viewModel::retry)
-            }
-        }
-    }
-}
-
-@Composable
-private fun CartFab(count: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Box(modifier = modifier) {
-        Box(
-            Modifier.size(72.dp).clip(CircleShape).background(RmColor.Card)
-                .clickable(onClick = onClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.Filled.ShoppingCart, "购物车", tint = RmColor.Accent, modifier = Modifier.size(34.dp))
-        }
-        if (count > 0) {
-            Box(
-                Modifier.align(Alignment.TopEnd).size(30.dp).clip(CircleShape).background(RmColor.Accent),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("$count", style = RmType.CardLink, color = RmColor.AccentInk)
             }
         }
     }

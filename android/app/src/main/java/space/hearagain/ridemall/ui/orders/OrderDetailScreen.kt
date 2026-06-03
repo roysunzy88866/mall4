@@ -52,7 +52,29 @@ fun OrderDetailScreen(
     modifier: Modifier = Modifier,
 ) {
     val stage = stageIndexOf(order.status)
-    var showReturnForm by androidx.compose.runtime.remember(order.id, order.status) { androidx.compose.runtime.mutableStateOf(false) }
+    var showReturnForm by remember(order.id, order.status) { mutableStateOf(false) }
+    // 待确认动作(弹框「是否要做」):(提示文案, 执行)
+    var pending by remember(order.id, order.status) { mutableStateOf<Pair<String, () -> Unit>?>(null) }
+
+    pending?.let { (msg, action) ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { pending = null },
+            title = { Text("请确认", color = RmColor.Text1) },
+            text = { Text(msg, color = RmColor.Text2) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { pending = null; action() }) {
+                    Text("确认", color = RmColor.Accent)
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { pending = null }) {
+                    Text("再想想", color = RmColor.Text3)
+                }
+            },
+            containerColor = RmColor.Card,
+        )
+    }
+
     Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             BackBar(onBack = onBack, title = "订单 #${order.id}")
@@ -69,7 +91,10 @@ fun OrderDetailScreen(
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     if (order.canCancel) {
-                        space.hearagain.ridemall.ui.components.GhostButton("取消订单", onClick = onCancel)
+                        space.hearagain.ridemall.ui.components.GhostButton(
+                            "取消订单",
+                            onClick = { pending = "确认取消该订单吗?取消后将自动退款。" to onCancel },
+                        )
                     }
                     if (order.canReturn) {
                         space.hearagain.ridemall.ui.components.GhostButton(
@@ -80,7 +105,9 @@ fun OrderDetailScreen(
                 }
                 if (showReturnForm && order.canReturn) {
                     Spacer(Modifier.height(16.dp))
-                    ReturnForm(onSubmit = { reason, note -> onRequestReturn(reason, note) })
+                    ReturnForm(onSubmit = { reason, note ->
+                        pending = "确认提交退货申请吗?(原因:$reason)" to { onRequestReturn(reason, note) }
+                    })
                 }
             }
             Spacer(Modifier.height(20.dp))
