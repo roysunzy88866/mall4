@@ -1,0 +1,5 @@
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["server/tests"]
+# 机器闸门:rules 纯业务规则必须 100% 覆盖,否则测试失败(= commit 被 pre-commit 拦下)
+addopts = "--cov=server/rules --cov-report=term-missing --cov-fail-under=100"

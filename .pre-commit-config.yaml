@@ -1,0 +1,11 @@
+# 机器硬卡:每次 git commit 前自动跑测试 + rules 100% 覆盖率,不绿则物理上 commit 不了。
+# 安装一次:.venv/bin/pre-commit install
+repos:
+  - repo: local
+    hooks:
+      - id: pytest-gate
+        name: pytest + rules 100% 覆盖率(测试方案机器闸门)
+        entry: .venv/bin/python -m pytest
+        language: system
+        pass_filenames: false
+        always_run: true

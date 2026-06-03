@@ -1,0 +1,6 @@
+# 运行依赖
+flask
+# 测试 / 闸门(开发期)
+pytest
+pytest-cov
+pre-commit
