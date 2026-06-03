@@ -20,18 +20,30 @@ def test_home_excludes_inactive_category(client, conn):
     assert all(pid not in rec_ids for pid in hidden)
 
 
+def test_home_banner_excludes_inactive_category(client, conn):
+    # DEBT-001 回归:停用分类后,其商品也不应出现在 banner 里
+    conn.execute("UPDATE categories SET is_active=0 WHERE id=1")
+    conn.commit()
+    banners = client.get("/api/home").get_json()["banners"]
+    cat1 = {r["id"] for r in conn.execute("SELECT id FROM products WHERE category_id=1").fetchall()}
+    assert all(b["product_id"] not in cat1 for b in banners)
+
+
 def test_home_empty_state(unseeded_client):
     data = unseeded_client.get("/api/home").get_json()
     assert data["recommended"] == []
     assert data["banners"] == []
 
 
-def test_categories_returns_active_sorted(client, conn):
+def test_categories_returns_active_sorted_by_sort_order(client, conn):
+    # DEBT-002 修复:让 id=1 的 sort_order 最大 → 应排到最后(若错按 id 排会在最前,假绿就破)
+    conn.execute("UPDATE categories SET sort_order=99 WHERE id=1")
     conn.execute("UPDATE categories SET is_active=0 WHERE id=2")
     conn.commit()
     ids = [c["id"] for c in client.get("/api/categories").get_json()]
-    assert 2 not in ids
-    assert ids == sorted(ids)
+    assert 2 not in ids       # 停用的不返回
+    assert ids[-1] == 1       # 按 sort_order:id=1 排最后
+    assert ids[0] != 1
 
 
 def test_category_products(client):

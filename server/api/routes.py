@@ -1,9 +1,13 @@
-"""车机只读接口(JSON)。依赖:flask, db, services.catalog_service。
-只做收参/调业务/序列化;业务不在此写。"""
-from flask import Blueprint, current_app, g, jsonify
+"""车机只读 + 下单接口(JSON)。依赖:flask, db, services。
+只做收参 / 校验 / 调业务 / 序列化;业务不在此写;domain 异常在此翻成 HTTP。"""
+from datetime import datetime
+
+from flask import Blueprint, current_app, g, jsonify, request
 
 from server import db
+from server.models.entities import OrderLineInput
 from server.services import catalog_service as svc
+from server.services import order_service as order_svc
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -16,6 +20,10 @@ def _conn():
 
 def _yuan(cents: int) -> str:
     return f"{cents / 100:.2f}"
+
+
+def _now() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _product_json(p) -> dict:
@@ -37,6 +45,29 @@ def _banner_json(b) -> dict:
         "price": _yuan(b.price_cents),
         "price_cents": b.price_cents,
         "image": b.image_url,
+    }
+
+
+def _order_json(ow) -> dict:
+    o = ow.order
+    return {
+        "id": o.id,
+        "device_id": o.device_id,
+        "status": o.status,
+        "created_at": o.created_at,
+        "total": _yuan(o.total_cents),
+        "total_cents": o.total_cents,
+        "items": [
+            {
+                "product_id": it.product_id,
+                "name": it.product_name,
+                "image": it.product_image,
+                "price": _yuan(it.price_cents),
+                "price_cents": it.price_cents,
+                "qty": it.qty,
+            }
+            for it in ow.items
+        ],
     }
 
 
@@ -72,3 +103,37 @@ def product_detail(product_id: int):
     payload = _product_json(detail.product)
     payload["images"] = [img.url for img in detail.images]
     return jsonify(payload)
+
+
+@bp.post("/orders")
+def create_order():
+    device_id = request.headers.get("X-Device-Id")
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        data = {}
+    raw = data.get("items")
+    raw = raw if isinstance(raw, list) else []
+    items = [
+        OrderLineInput(
+            product_id=r.get("product_id"),
+            name=r.get("name") or "",
+            image=r.get("image"),
+            price_cents=r.get("price_cents"),
+            qty=r.get("qty"),
+        )
+        for r in raw
+        if isinstance(r, dict)
+    ]
+    try:
+        created = order_svc.place_order(_conn(), device_id, items, _now())
+    except order_svc.InvalidOrder as e:
+        return jsonify({"error": "; ".join(e.errors)}), 400
+    return jsonify(_order_json(created)), 201
+
+
+@bp.get("/orders")
+def list_orders():
+    device_id = request.headers.get("X-Device-Id")
+    if not device_id:
+        return jsonify([])
+    return jsonify([_order_json(o) for o in order_svc.list_orders(_conn(), device_id)])

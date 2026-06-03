@@ -7,13 +7,13 @@
 - **位置**:`server/services/catalog_service.py` 的 `home_data` banner 循环。
 - **问题**:停用某分类后,其商品已从「为你推荐」剔除,但引用该商品的 banner 仍出现在 `/api/home`(子 Agent 实测复现)。违反 `openspec/specs/catalog-browsing` 的「停用分类商品不出现」+ 后端需求 D5。
 - **修复**:banner 循环里用已算好的 `active_ids` 判断 `product.category_id`,不在则跳过;补一条集成测试。
-- **计划**:随 `order-checkout` 或单独小 change。状态:⏳ 未闭合。
+- **状态**:✅ 闭合(2026-06-03,随 order-checkout 修复:banner 循环加 `active_set` 过滤 + 回归测试 `test_home_banner_excludes_inactive_category`)。
 
 ## DEBT-2026-06-002 · 分类排序测试「假绿」🟠 MAJOR
 - **位置**:`server/tests/integration/test_api_catalog.py::test_categories_returns_active_sorted`。
 - **问题**:seed 里 `sort_order` 恰好＝id 顺序,SQL 即使错写成按 id 排也照样绿,没真正验证 spec 要求的「按 sort_order」。
 - **修复**:测试里把某分类 `sort_order` 设成与 id 相反,断言返回顺序随 `sort_order` 变。
-- **计划**:同 001。状态:⏳ 未闭合。
+- **状态**:✅ 闭合(2026-06-03,测试改为真咬 sort_order:`test_categories_returns_active_sorted_by_sort_order`)。
 
 ## DEBT-2026-06-003 · 价格元→分换算的浮点 / 舍入隐患 🟡 MINOR
 - **位置**:`server/seed.py` 的 `round(price_yuan * 100)`(将来「后台商品 CRUD」会复用此换算)。

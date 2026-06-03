@@ -29,12 +29,14 @@ class ProductDetail:
 
 def home_data(conn) -> HomeData:
     active_ids = repo.active_category_ids(conn)
+    active_set = set(active_ids)
     visible = rules.filter_active_category_products(repo.all_products(conn), active_ids)
     recommended = rules.sort_recommended(visible)
     banner_views: list[BannerView] = []
     for b in repo.banners(conn):
         product = repo.product_by_id(conn, b.product_id)
-        if product is None:
+        # DEBT-001 修复:停用分类下的商品也不进 banner
+        if product is None or product.category_id not in active_set:
             continue
         images = repo.images_for_product(conn, product.id)
         main_url = images[0].url if images else None

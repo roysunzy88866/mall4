@@ -46,3 +46,39 @@ class BannerView:
     description: str
     price_cents: int
     image_url: str | None
+
+
+@dataclass(frozen=True)
+class OrderLineInput:
+    """车机上送的下单行项(整单快照:名 / 图 / 价 / 数量)。"""
+    product_id: int | None
+    name: str
+    image: str | None
+    price_cents: int
+    qty: int
+
+
+@dataclass(frozen=True)
+class Order:
+    id: int
+    device_id: str
+    status: str
+    total_cents: int
+    created_at: str
+
+
+@dataclass(frozen=True)
+class OrderItem:
+    id: int
+    order_id: int
+    product_id: int | None
+    product_name: str
+    product_image: str | None
+    price_cents: int
+    qty: int
+
+
+@dataclass(frozen=True)
+class OrderWithItems:
+    order: Order
+    items: list[OrderItem]
