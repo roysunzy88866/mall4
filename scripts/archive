@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# 归档硬门禁:必须 pytest 全绿(含 rules 100% 覆盖)+ 该 change 结构校验通过,才允许 archive。
+# 用法:scripts/archive <change-name>
+# 这是本项目唯一被认可的归档路径;直接 `openspec archive` 绕过本门禁
+# (但归档那次 git commit 仍被 pre-commit 的 pytest 闸门兜底)。
+
+CHANGE="${1:-}"
+if [ -z "$CHANGE" ]; then
+  echo "用法: scripts/archive <change-name>" >&2
+  exit 2
+fi
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT" || exit 1
+
+echo "▶ 门禁 1/2:pytest + rules 100% 覆盖率"
+if ! .venv/bin/python -m pytest -q; then
+  echo "✗ 测试未全绿 / 覆盖率不达标 —— 拒绝归档 $CHANGE" >&2
+  exit 1
+fi
+
+echo "▶ 门禁 2/2:openspec validate $CHANGE --strict"
+if ! openspec validate "$CHANGE" --strict --no-interactive; then
+  echo "✗ 规格校验未过 —— 拒绝归档 $CHANGE" >&2
+  exit 1
+fi
+
+echo "▶ 双门禁通过,执行归档 $CHANGE"
+openspec archive "$CHANGE" -y || exit 1
+echo "✓ 已归档 $CHANGE(记得提交:git commit 'chore(openspec): archive $CHANGE')"

@@ -6,13 +6,9 @@
 
 ---
 
-## 🚦 当前状态(2026-06-03)
+## 🚦 当前进度(不在本文件维护)
 
-已建成:**git 仓库(有提交)、OpenSpec 工作流、后端代码 `server/`、pytest + 覆盖率 pre-commit 闸门**。
-- ✅ 已交付并归档:`backend-foundation`(车机浏览侧只读后端 = 能力 `catalog-browsing`)
-- 🚧 进行中(已 propose,待 apply):`order-checkout`(下单 + 本机订单)
-- ✅ 文档:需求共识 / 后端需求 / 测试方案 / `docs/`(architecture·api·adr·tech-debt) / `openspec/`(project·specs·changes) / 设计稿
-- 🚧 未建:`server/` 后台与登录、车机 `android/`、`deploy/`(后续 change)
+进度会过时,**不写死在这份「铁律」里**。看实时源:`git log --oneline` + `openspec list`(进行中的 change)+ `openspec list --specs`(已建能力)。本文件只放**稳定纪律**。
 
 ---
 
@@ -21,7 +17,7 @@
 切片单位 = 一个 **OpenSpec change**。三段生命周期:
 1. **propose**(`/opsx:propose`)→ 生成 `openspec/changes/<名>/`:`proposal.md`(为什么/改什么/能力)→ `specs/<能力>/spec.md`(正式需求 + `#### Scenario` WHEN/THEN)→ `design.md`(怎么做 + 决策)→ `tasks.md`(实现清单)。
 2. **apply**(`/opsx:apply`)→ 照 tasks 红绿循环写代码,逐条勾 `[x]`。
-3. **archive**(`/opsx:archive`)→ 校验后把 spec 增量并进 **`openspec/specs/`(长期真相源)**,change 入 `archive/`。
+3. **archive** → **必须走 `scripts/archive <名>`**(硬门禁:先 pytest 全绿 + `openspec validate --strict`,过了才把 spec 增量并进 **`openspec/specs/`(长期真相源)**、change 入 `archive/`)。直接 `openspec archive` 绕过门禁,禁止。
 - `openspec/project.md` = 项目上下文;每个 change `openspec validate <名> --strict` 必须过(机器闸门)。
 - **禁止跳过 propose 直接写代码**:先有 change 的 specs/tasks,再 apply。
 
@@ -53,7 +49,8 @@
 
 ## 🪝 自动化检查(机器闸门 · 据实)
 
-**当前闸门**:`.pre-commit-config.yaml` 的 `pytest-gate` —— 每次 `git commit` 跑 `pytest` + **`rules` 100% 覆盖率**(`--cov-fail-under=100`),不绿则**提交被拦**。已 `pre-commit install`、实测生效。
+**提交闸门**:`.pre-commit-config.yaml` 的 `pytest-gate` —— 每次 `git commit` 跑 `pytest` + **`rules` 100% 覆盖率**(`--cov-fail-under=100`),不绿则**提交被拦**。已 `pre-commit install`、实测生效。
+**归档闸门**:`scripts/archive <名>` —— archive 前强制 pytest 全绿 + `openspec validate <名> --strict`,任一不过则**拒绝归档**;唯一认可的归档路径(直接 `openspec archive` 绕过它,但归档的 commit 仍被提交闸门兜底)。
 **计划补**:ruff / mypy 钩子(尚无)。
 > ⚠️ 目前**没有** commit-message 格式校验、没有路径白名单 / 两锚钩子——别声称有。
 
