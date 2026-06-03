@@ -19,8 +19,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/pre-commit install       # 装提交硬卡(测试不绿则 commit 被拦)
 ```
 - 环境变量:`RIDEMALL_PORT`(默认 8000)/ `RIDEMALL_DB` / `RIDEMALL_UPLOADS`(均有默认值)。
-- 已就位:车机只读接口 + 下单接口 + 网页后台(`/admin`);车机端 `android/` 浏览主干(推荐页 + 分类页)。
-- 🚧 后续 change:车机端下单闭环(详情→确认→扫码→订单历史)。
+- 已就位:车机只读接口 + 下单接口 + 网页后台(`/admin`);车机端 `android/` 浏览主干 + **购物车 + 多商品下单闭环**(详情→加购物车/立即买→购物车→确认→扫码 179s→支付成功→订单历史)。
+- 🚧 后续 change:订单状态机 + 物流(mock)+ 后台浅色重做;取消 + 7 天无理由退货(见 [ADR-0012](docs/adr/0012-order-lifecycle-upgrade.md))。
 
 ## 运行车机端(Android)
 工程在 [`android/`](android/)(Kotlin + Jetpack Compose,minSdk 26)。需 JDK 17 + Android SDK(platform android-34)。
