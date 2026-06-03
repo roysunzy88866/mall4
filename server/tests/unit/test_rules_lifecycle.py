@@ -51,3 +51,27 @@ def test_logistics_nodes():
 
 def test_stage_labels_cover_all():
     assert set(lc.STAGE_LABELS) == set(lc.STAGES)
+
+
+def test_status_label_main_and_branch():
+    assert lc.status_label("paid") == "待发货"
+    assert lc.status_label("cancelled") == "已取消"
+    assert lc.status_label("refunded") == "已退款"
+    assert lc.status_label("未知") == "未知"
+
+
+def test_can_cancel():
+    assert lc.can_cancel("paid") is True
+    assert lc.can_cancel("shipping") is True
+    assert lc.can_cancel("delivering") is True
+    assert lc.can_cancel("delivered") is False  # 已签收改走退货
+    assert lc.can_cancel("cancelled") is False
+
+
+def test_can_request_return():
+    w = 7 * 86400
+    assert lc.can_request_return("delivered", 0, w) is True
+    assert lc.can_request_return("delivered", w, w) is True  # 含端点
+    assert lc.can_request_return("delivered", w + 1, w) is False  # 超窗口
+    assert lc.can_request_return("shipping", 0, w) is False  # 未签收不可退
+    assert lc.can_request_return("refunded", 0, w) is False

@@ -256,6 +256,22 @@ class StoreViewModel(private val repo: StoreRepository) : ViewModel() {
         }
     }
 
+    fun cancelOrder(orderId: Int) {
+        viewModelScope.launch {
+            runCatching { repo.cancelOrder(orderId) }
+                .onSuccess { o -> _state.update { it.copy(content = ContentState.OrderDetailLoaded(o)) } }
+                .onFailure { openOrderDetail(orderId) }
+        }
+    }
+
+    fun requestReturn(orderId: Int, reason: String, note: String?) {
+        viewModelScope.launch {
+            runCatching { repo.returnOrder(orderId, reason, note) }
+                .onSuccess { o -> _state.update { it.copy(content = ContentState.OrderDetailLoaded(o)) } }
+                .onFailure { openOrderDetail(orderId) }
+        }
+    }
+
     fun backFromOrderDetail() = openOrders()
 
     fun retry() {

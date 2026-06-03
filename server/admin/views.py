@@ -289,6 +289,7 @@ def order_detail_page(order_id):
         "order_detail.html", ow=ow, logistics=logistics, labels=lc.STAGE_LABELS,
         stages=lc.STAGES, status_options=_status_options(),
         stage_index=lc.stage_index(ow.order.status), step=_step(),
+        status_text=lc.status_label(ow.order.status),
     )
 
 
@@ -313,3 +314,37 @@ def order_set_status(order_id):
     if status in lc.STAGES:
         life_svc.admin_set_status(_conn(), order_id, status, _now())
     return redirect(url_for("admin.order_detail_page", order_id=order_id))
+
+
+def _window() -> int:
+    return current_app.config.get("RETURN_WINDOW_SECONDS", 7 * 86400)
+
+
+@bp.post("/orders/<int:order_id>/expire-return")
+@login_required
+def order_expire_return(order_id):
+    life_svc.fast_forward_return_window(_conn(), order_id, _now(), _window())
+    return redirect(url_for("admin.order_detail_page", order_id=order_id))
+
+
+# ---- 退货审核 ----
+@bp.get("/returns")
+@login_required
+def returns_page():
+    return render_template(
+        "returns.html", rows=life_svc.returns_list(_conn()), labels=lc.BRANCH_LABELS
+    )
+
+
+@bp.post("/returns/<int:order_id>/approve")
+@login_required
+def return_approve(order_id):
+    life_svc.approve_return(_conn(), order_id, _now())
+    return redirect(request.form.get("back") or url_for("admin.returns_page"))
+
+
+@bp.post("/returns/<int:order_id>/reject")
+@login_required
+def return_reject(order_id):
+    life_svc.reject_return(_conn(), order_id)
+    return redirect(request.form.get("back") or url_for("admin.returns_page"))

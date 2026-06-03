@@ -56,4 +56,7 @@ data class Order(
     val totalLabel: String,
     val items: List<OrderItem>,
     val logistics: List<LogisticsNode> = emptyList(),
+    val canCancel: Boolean = false,
+    val canReturn: Boolean = false,
+    val returnReason: String? = null,
 )

@@ -6,6 +6,7 @@ from flask import Blueprint, current_app, g, jsonify, request
 
 from server import db
 from server.models.entities import OrderLineInput
+from server.rules import lifecycle as lc
 from server.rules import money
 from server.services import catalog_service as svc
 from server.services import lifecycle_service as life_svc
@@ -22,6 +23,10 @@ def _conn():
 
 def _step() -> int:
     return current_app.config.get("STATUS_STEP_SECONDS", 30)
+
+
+def _window() -> int:
+    return current_app.config.get("RETURN_WINDOW_SECONDS", 7 * 86400)
 
 
 def _yuan(cents: int) -> str:
@@ -54,16 +59,21 @@ def _banner_json(b) -> dict:
     }
 
 
-def _order_json(ow, logistics=None) -> dict:
+def _order_json(ow, logistics=None, can_cancel=False, can_return=False) -> dict:
     o = ow.order
     payload = {
         "id": o.id,
         "device_id": o.device_id,
         "status": o.status,
+        "status_label": lc.status_label(o.status),
         "created_at": o.created_at,
         "total": _yuan(o.total_cents),
         "total_cents": o.total_cents,
         "logistics": logistics or [],
+        "can_cancel": can_cancel,
+        "can_return": can_return,
+        "return_reason": o.return_reason,
+        "return_note": o.return_note,
         "items": [
             {
                 "product_id": it.product_id,
@@ -144,14 +154,48 @@ def list_orders():
     device_id = request.headers.get("X-Device-Id")
     if not device_id:
         return jsonify([])
-    rows = life_svc.list_orders(_conn(), device_id, _now(), _step())
-    return jsonify([_order_json(ow, log) for (ow, log) in rows])
+    now = _now()
+    rows = life_svc.list_orders(_conn(), device_id, now, _step())
+    return jsonify([
+        _order_json(ow, log, life_svc.can_cancel(ow.order), life_svc.can_return(ow.order, now, _window()))
+        for (ow, log) in rows
+    ])
 
 
 @bp.get("/orders/<int:order_id>")
 def order_detail(order_id: int):
-    result = life_svc.order_detail(_conn(), order_id, _now(), _step())
+    now = _now()
+    result = life_svc.order_detail(_conn(), order_id, now, _step())
     if result is None:
         return jsonify({"error": "订单不存在"}), 404
     ow, log = result
-    return jsonify(_order_json(ow, log))
+    return jsonify(_order_json(
+        ow, log, life_svc.can_cancel(ow.order), life_svc.can_return(ow.order, now, _window())
+    ))
+
+
+_ERR_HTTP = {"not_found": 404, "forbidden": 403, "conflict": 409, "bad_request": 400}
+
+
+@bp.post("/orders/<int:order_id>/cancel")
+def cancel_order(order_id: int):
+    device_id = request.headers.get("X-Device-Id")
+    try:
+        life_svc.cancel_order(_conn(), order_id, device_id, _now(), _step())
+    except life_svc.OrderActionError as e:
+        return jsonify({"error": e.msg}), _ERR_HTTP.get(e.code, 400)
+    return order_detail(order_id)
+
+
+@bp.post("/orders/<int:order_id>/return")
+def return_order(order_id: int):
+    device_id = request.headers.get("X-Device-Id")
+    data = request.get_json(silent=True) or {}
+    try:
+        life_svc.request_return(
+            _conn(), order_id, device_id, data.get("reason"), data.get("note"),
+            _now(), _step(), _window(),
+        )
+    except life_svc.OrderActionError as e:
+        return jsonify({"error": e.msg}), _ERR_HTTP.get(e.code, 400)
+    return order_detail(order_id)

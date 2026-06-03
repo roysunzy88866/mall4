@@ -21,7 +21,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 - 环境变量:`RIDEMALL_PORT`(默认 8000)/ `RIDEMALL_DB` / `RIDEMALL_UPLOADS`(均有默认值)。
 - 已就位:车机只读 + 下单接口 + 网页后台(`/admin`,**浅色重做** + 订单状态管理/物流);车机端 `android/` 浏览主干 + 购物车下单闭环 + **订单状态机 + mock 物流 + 订单详情**。
 - 状态机:`paid(待发货)→shipping→delivering→delivered`,按 `RIDEMALL_STATUS_STEP_SECONDS`(默认 30 秒)惰性自动推进,后台可快进/改状态。
-- 🚧 后续 change:取消订单 + 7 天无理由退货(后台审核)(见 [ADR-0012](docs/adr/0012-order-lifecycle-upgrade.md))。
+- **取消 + 7 天无理由退货**:签收前可取消(自动+mock退款);签收后 7 天内(`RIDEMALL_RETURN_WINDOW_SECONDS`)可申请退货 → 后台审核(通过=已退款 mock/拒绝);后台「退货审核」页 + 订单详情就地审核 + 快进窗口。
+- ✅ ADR-0012 订单全生命周期升级**已全部落地**(购物车/多商品/状态机/物流/取消/退货)。
 
 ## 运行车机端(Android)
 工程在 [`android/`](android/)(Kotlin + Jetpack Compose,minSdk 26)。需 JDK 17 + Android SDK(platform android-34)。

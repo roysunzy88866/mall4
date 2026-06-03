@@ -10,6 +10,9 @@ def _order(row) -> Order:
         clock_base_at=row["clock_base_at"] if "clock_base_at" in keys else None,
         manual=row["manual"] if "manual" in keys else 0,
         delivered_at=row["delivered_at"] if "delivered_at" in keys else None,
+        return_reason=row["return_reason"] if "return_reason" in keys else None,
+        return_note=row["return_note"] if "return_note" in keys else None,
+        cancelled_at=row["cancelled_at"] if "cancelled_at" in keys else None,
     )
 
 
@@ -74,3 +77,31 @@ def update_status(conn, order_id: int, status: str, manual: int | None = None,
 
 def set_clock_base(conn, order_id: int, clock_base_at: str) -> None:
     conn.execute("UPDATE orders SET clock_base_at=? WHERE id=?", (clock_base_at, order_id))
+
+
+def set_cancelled(conn, order_id: int, cancelled_at: str) -> None:
+    conn.execute(
+        "UPDATE orders SET status='cancelled', manual=1, cancelled_at=? WHERE id=?",
+        (cancelled_at, order_id),
+    )
+
+
+def set_return(conn, order_id: int, reason: str, note: str | None) -> None:
+    conn.execute(
+        "UPDATE orders SET status='return_review', manual=1, return_reason=?, return_note=? WHERE id=?",
+        (reason, note, order_id),
+    )
+
+
+def set_delivered_at(conn, order_id: int, delivered_at: str) -> None:
+    conn.execute("UPDATE orders SET delivered_at=? WHERE id=?", (delivered_at, order_id))
+
+
+def returns_orders(conn) -> list[Order]:
+    """退货态订单(审核页用)。"""
+    rows = conn.execute(
+        "SELECT * FROM orders WHERE status IN "
+        "('return_review','returning','refunded','return_rejected') "
+        "ORDER BY created_at DESC, id DESC"
+    ).fetchall()
+    return [_order(r) for r in rows]

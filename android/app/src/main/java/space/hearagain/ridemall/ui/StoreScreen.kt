@@ -110,6 +110,8 @@ fun StoreScreen(
                     is ContentState.OrderDetailLoaded -> OrderDetailScreen(
                         order = content.order,
                         onBack = viewModel::backFromOrderDetail,
+                        onCancel = { viewModel.cancelOrder(content.order.id) },
+                        onRequestReturn = { reason, note -> viewModel.requestReturn(content.order.id, reason, note) },
                     )
                     is ContentState.NetworkError -> {}
                 }

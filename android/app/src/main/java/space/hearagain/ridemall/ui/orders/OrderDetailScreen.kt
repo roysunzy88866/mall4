@@ -2,6 +2,7 @@ package space.hearagain.ridemall.ui.orders
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,8 +21,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,8 +44,15 @@ import space.hearagain.ridemall.util.STAGE_LABELS
 import space.hearagain.ridemall.util.stageIndexOf
 
 @Composable
-fun OrderDetailScreen(order: Order, onBack: () -> Unit, modifier: Modifier = Modifier) {
+fun OrderDetailScreen(
+    order: Order,
+    onBack: () -> Unit,
+    onCancel: () -> Unit,
+    onRequestReturn: (reason: String, note: String?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val stage = stageIndexOf(order.status)
+    var showReturnForm by androidx.compose.runtime.remember(order.id, order.status) { androidx.compose.runtime.mutableStateOf(false) }
     Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             BackBar(onBack = onBack, title = "订单 #${order.id}")
@@ -47,6 +60,31 @@ fun OrderDetailScreen(order: Order, onBack: () -> Unit, modifier: Modifier = Mod
             StatusBadge(order.statusLabel)
         }
         Spacer(Modifier.height(28.dp))
+
+        // 取消 / 退货 操作
+        if (order.canCancel || order.canReturn || order.returnReason != null) {
+            Card {
+                if (order.returnReason != null) {
+                    Text("退货原因:${order.returnReason}", style = RmType.BannerDesc, color = RmColor.Text2)
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (order.canCancel) {
+                        space.hearagain.ridemall.ui.components.GhostButton("取消订单", onClick = onCancel)
+                    }
+                    if (order.canReturn) {
+                        space.hearagain.ridemall.ui.components.GhostButton(
+                            if (showReturnForm) "收起" else "申请退货",
+                            onClick = { showReturnForm = !showReturnForm },
+                        )
+                    }
+                }
+                if (showReturnForm && order.canReturn) {
+                    Spacer(Modifier.height(16.dp))
+                    ReturnForm(onSubmit = { reason, note -> onRequestReturn(reason, note) })
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+        }
 
         // 状态步条(4 节点)
         Card {
@@ -121,6 +159,38 @@ private fun Card(content: @Composable androidx.compose.foundation.layout.ColumnS
             .border(1.dp, RmColor.Line, RoundedCornerShape(RmDimens.RadPanel)).padding(28.dp),
         content = content,
     )
+}
+
+@Composable
+private fun ReturnForm(onSubmit: (String, String?) -> Unit) {
+    val reasons = listOf("7天无理由", "质量问题", "拍错了", "其它")
+    var selected by remember { mutableStateOf(reasons.first()) }
+    var note by remember { mutableStateOf("") }
+    Column {
+        Text("退货原因", style = RmType.CardLink, color = RmColor.Text3)
+        Spacer(Modifier.height(10.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            reasons.forEach { r ->
+                val on = r == selected
+                Box(
+                    Modifier.clip(RoundedCornerShape(RmDimens.RadPill))
+                        .background(if (on) RmColor.AccentSoft else RmColor.CardHi)
+                        .border(1.dp, if (on) RmColor.AccentLine else RmColor.Line, RoundedCornerShape(RmDimens.RadPill))
+                        .clickable { selected = r }.padding(horizontal = 18.dp, vertical = 10.dp),
+                ) { Text(r, color = if (on) RmColor.Accent else RmColor.Text2, style = RmType.CardLink) }
+            }
+        }
+        Spacer(Modifier.height(14.dp))
+        OutlinedTextField(
+            value = note, onValueChange = { note = it },
+            placeholder = { Text("补充说明(选填)", color = RmColor.Text3) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(16.dp))
+        space.hearagain.ridemall.ui.components.PrimaryButton(
+            "提交退货申请", onClick = { onSubmit(selected, note.ifBlank { null }) },
+        )
+    }
 }
 
 @Composable

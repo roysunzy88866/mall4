@@ -46,3 +46,9 @@
 - **问题**:设计稿要 Oxanium(数字)+ Noto Sans SC(中文),但本机无字体文件、沙箱网络取不到,暂用系统 sans-serif + Monospace 回退(CJK 回退设计 README 已许可;数字字体为次要视觉)。
 - **修复**:把 Oxanium / Noto Sans SC 的 `.ttf` 放进 `android/app/src/main/assets/fonts/`,在 `Type.kt` 把 `BodyFamily`/`NumberFamily` 指过去(单点切换,已留好)。
 - **状态**:⏳ 未闭合(见 car-storefront-browse design.md D10)。
+
+## DEBT-2026-06-009 · 车机分支态步条/物流重置为灰 🟢 MINOR
+- **位置**:`android/.../ui/orders/OrderDetailScreen.kt` 状态步条 + 物流时间线;`rules/lifecycle.py` logistics_nodes/stage_index 对分支态返回 -1/0。
+- **问题**:订单进入分支态(退货审核中/已取消/已退款/退货被拒)后,stage_index=-1,步条与物流按主阶段重置为灰;实际该单可能曾走到已签收。分支态信息已由徽章+退货原因卡清晰展示,功能不受影响。
+- **修复**:分支态时,步条/物流保留「曾达到的最高主阶段」(可存 max_stage 或据 delivered_at/cancelled_at 推断);或分支态单独画一条「售后时间线」。
+- **状态**:⏳ 未闭合(cancel-and-return 发现,demo 可接受)。

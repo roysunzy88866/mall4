@@ -33,4 +33,9 @@ class StoreRepository(
     suspend fun orders(): List<Order> = api.orders().map { it.toModel(baseUrl) }
 
     suspend fun orderDetail(orderId: Int): Order = api.orderDetail(orderId).toModel(baseUrl)
+
+    suspend fun cancelOrder(orderId: Int): Order = api.cancelOrder(orderId).toModel(baseUrl)
+
+    suspend fun returnOrder(orderId: Int, reason: String, note: String?): Order =
+        api.returnOrder(orderId, space.hearagain.ridemall.data.api.ReturnBody(reason, note)).toModel(baseUrl)
 }

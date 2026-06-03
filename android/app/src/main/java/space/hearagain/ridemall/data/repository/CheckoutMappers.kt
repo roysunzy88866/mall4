@@ -41,6 +41,9 @@ fun OrderDto.toModel(baseUrl: String): Order = Order(
     logistics = logistics.map {
         space.hearagain.ridemall.model.LogisticsNode(it.label, it.reached, it.at)
     },
+    canCancel = canCancel,
+    canReturn = canReturn,
+    returnReason = returnReason,
 )
 
 /** 下单草稿行 → 请求体(image 原样上送,后端存什么车机就显示什么)。 */

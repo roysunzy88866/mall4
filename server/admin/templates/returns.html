@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="topbar"><h1>退货审核</h1><span class="sub">无理由退货申请</span></div>
+
+<div class="card2" style="padding:6px 8px">
+<table class="t">
+  <thead><tr><th>订单号</th><th>时间</th><th>商品</th><th>金额</th><th>退货原因</th><th>状态</th><th>操作</th></tr></thead>
+  <tbody>
+  {% for ow in rows %}
+    {% set o = ow.order %}
+    <tr>
+      <td><b>#{{ o.id }}</b></td>
+      <td>{{ o.created_at }}</td>
+      <td>{{ ow.items[0].product_name }}{% if ow.items|length > 1 %} 等 {{ ow.items|length }} 件{% endif %}</td>
+      <td>¥{{ o.total_cents | yuan }}</td>
+      <td>{{ o.return_reason or '—' }}{% if o.return_note %}<div style="color:var(--ink3);font-size:13px">{{ o.return_note }}</div>{% endif %}</td>
+      <td><span class="badge2 b-{{ o.status }}">{{ labels.get(o.status, o.status) }}</span></td>
+      <td>
+        {% if o.status == 'return_review' %}
+        <form method="post" action="{{ url_for('admin.return_approve', order_id=o.id) }}" style="display:inline">
+          <button class="btn2 accent">通过</button></form>
+        <form method="post" action="{{ url_for('admin.return_reject', order_id=o.id) }}" style="display:inline">
+          <button class="btn2">拒绝</button></form>
+        {% else %}<span style="color:var(--ink3)">已处理</span>{% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="text-muted" style="padding:24px">暂无退货申请</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

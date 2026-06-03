@@ -5,8 +5,27 @@
   <a class="btn2" href="{{ url_for('admin.orders_page') }}">← 返回</a>
   <h1 style="margin-left:14px">订单 #{{ o.id }}</h1>
   <span class="sub">{{ o.created_at }} · 设备 {{ o.device_id }}</span>
-  <span style="margin-left:auto"><span class="badge2 b-{{ o.status }}">{{ labels.get(o.status, o.status) }}</span></span>
+  <span style="margin-left:auto"><span class="badge2 b-{{ o.status }}">{{ status_text }}</span></span>
 </div>
+
+{% if o.status in ('cancelled','return_review','returning','refunded','return_rejected') %}
+<div class="card2" style="margin-bottom:18px;border-left:4px solid var(--amber)">
+  <b>{{ status_text }}</b>
+  {% if o.return_reason %}<span style="color:var(--ink2)"> · 退货原因：{{ o.return_reason }}</span>{% endif %}
+  {% if o.return_note %}<span style="color:var(--ink3)">（{{ o.return_note }}）</span>{% endif %}
+  {% if o.cancelled_at %}<span style="color:var(--ink3)"> · 取消于 {{ o.cancelled_at }}</span>{% endif %}
+  {% if o.status == 'return_review' %}
+  <div style="margin-top:12px">
+    <form method="post" action="{{ url_for('admin.return_approve', order_id=o.id) }}" style="display:inline">
+      <input type="hidden" name="back" value="{{ url_for('admin.order_detail_page', order_id=o.id) }}">
+      <button class="btn2 accent">通过退货</button></form>
+    <form method="post" action="{{ url_for('admin.return_reject', order_id=o.id) }}" style="display:inline">
+      <input type="hidden" name="back" value="{{ url_for('admin.order_detail_page', order_id=o.id) }}">
+      <button class="btn2">拒绝</button></form>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
 
 <!-- 状态步条 -->
 <div class="card2" style="margin-bottom:18px">
@@ -75,8 +94,13 @@
         </select>
         <button class="btn2 accent">改状态</button>
       </form>
+      {% if o.status == 'delivered' %}
+      <form method="post" action="{{ url_for('admin.order_expire_return', order_id=o.id) }}" style="margin-top:8px">
+        <button class="btn2" style="width:100%">⏰ 快进退货窗口到过期</button>
+      </form>
+      {% endif %}
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);color:var(--ink3);font-size:13px">
-        ⚙ 演示控制：自动推进间隔 <b>{{ step }} 秒/阶段</b>（环境变量 RIDEMALL_STATUS_STEP_SECONDS 可调）
+        ⚙ 演示控制：自动推进间隔 <b>{{ step }} 秒/阶段</b>（RIDEMALL_STATUS_STEP_SECONDS 可调）
       </div>
     </div>
   </div>

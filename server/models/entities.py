@@ -68,6 +68,9 @@ class Order:
     clock_base_at: str | None = None
     manual: int = 0
     delivered_at: str | None = None
+    return_reason: str | None = None
+    return_note: str | None = None
+    cancelled_at: str | None = None
 
 
 @dataclass(frozen=True)

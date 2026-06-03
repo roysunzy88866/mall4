@@ -34,7 +34,12 @@ data class OrderDto(
     @Json(name = "total_cents") val totalCents: Int,
     val items: List<OrderItemDto> = emptyList(),
     val logistics: List<LogisticsNodeDto> = emptyList(),
+    @Json(name = "can_cancel") val canCancel: Boolean = false,
+    @Json(name = "can_return") val canReturn: Boolean = false,
+    @Json(name = "return_reason") val returnReason: String? = null,
 )
+
+data class ReturnBody(val reason: String, val note: String?)
 
 data class OrderItemDto(
     @Json(name = "product_id") val productId: Int,

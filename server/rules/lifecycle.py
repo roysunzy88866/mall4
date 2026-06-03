@@ -12,6 +12,33 @@ STAGE_LABELS = {
 # 物流节点(序号 i = 到达阶段 i 时点亮)
 LOGISTICS_LABELS = ["已下单", "已发货", "派送中", "已签收"]
 
+# 分支态(取消 / 退货,第四刀)
+BRANCH_LABELS = {
+    "cancelled": "已取消",
+    "return_review": "退货审核中",
+    "returning": "退货中",
+    "refunded": "已退款",
+    "return_rejected": "退货被拒",
+}
+
+
+def status_label(status: str) -> str:
+    """任意状态 → 中文(主阶段 + 分支态)。"""
+    return STAGE_LABELS.get(status) or BRANCH_LABELS.get(status) or status
+
+
+def can_cancel(status: str) -> bool:
+    """签收前(主阶段 0~2)可取消;已签收及分支态不可。"""
+    i = stage_index(status)
+    return 0 <= i < 3
+
+
+def can_request_return(status: str, delivered_elapsed_seconds: int, window_seconds: int) -> bool:
+    """已签收且距签收在退货窗口内可申请退货(含端点)。"""
+    if status != "delivered":
+        return False
+    return 0 <= int(delivered_elapsed_seconds) <= int(window_seconds)
+
 
 def stage_index(status: str) -> int:
     """主阶段序(0~3);非主阶段(取消/退货等分支)返回 -1。"""

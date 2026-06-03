@@ -45,7 +45,10 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at    TEXT    NOT NULL,
   clock_base_at TEXT,                       -- 状态机推进基准(默认=created_at,后台快进回拨)
   manual        INTEGER NOT NULL DEFAULT 0, -- 1=被管理员接管,停自动推进
-  delivered_at  TEXT                        -- 到达已签收时刻(第四刀 7 天退货窗口用)
+  delivered_at  TEXT,                       -- 到达已签收时刻(7 天退货窗口用)
+  return_reason TEXT,                       -- 退货原因(第四刀)
+  return_note   TEXT,                       -- 退货说明(选填)
+  cancelled_at  TEXT                        -- 取消时刻
 );
 
 CREATE TABLE IF NOT EXISTS order_items (

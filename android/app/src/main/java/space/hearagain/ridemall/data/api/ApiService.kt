@@ -30,4 +30,10 @@ interface ApiService {
 
     @GET("api/orders/{id}")
     suspend fun orderDetail(@Path("id") orderId: Int): OrderDto
+
+    @POST("api/orders/{id}/cancel")
+    suspend fun cancelOrder(@Path("id") orderId: Int): OrderDto
+
+    @POST("api/orders/{id}/return")
+    suspend fun returnOrder(@Path("id") orderId: Int, @Body body: ReturnBody): OrderDto
 }

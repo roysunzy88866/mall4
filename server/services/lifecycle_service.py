@@ -106,3 +106,83 @@ def admin_set_status(conn, order_id: int, status: str, now: str) -> None:
     delivered_at = now if status == "delivered" else None
     repo.update_status(conn, order_id, status, manual=1, delivered_at=delivered_at)
     conn.commit()
+
+
+# ---- 取消 / 退货(第四刀) ----
+class OrderActionError(Exception):
+    """取消/退货动作非法。code: 'not_found'/'forbidden'/'conflict'/'bad_request'。"""
+
+    def __init__(self, code: str, msg: str):
+        super().__init__(msg)
+        self.code = code
+        self.msg = msg
+
+
+def _return_elapsed(order, now: str) -> int:
+    if not order.delivered_at:
+        return -1
+    return int((_parse(now) - _parse(order.delivered_at)).total_seconds())
+
+
+def can_cancel(order) -> bool:
+    return lc.can_cancel(order.status)
+
+
+def can_return(order, now: str, window: int) -> bool:
+    return lc.can_request_return(order.status, _return_elapsed(order, now), window)
+
+
+def _fresh(conn, order_id, now, step):
+    o = repo.order_by_id(conn, order_id)
+    if o is None:
+        raise OrderActionError("not_found", "订单不存在")
+    return _advance(conn, o, now, step)
+
+
+def cancel_order(conn, order_id: int, device_id: str | None, now: str, step: int) -> None:
+    o = _fresh(conn, order_id, now, step)
+    if o.device_id != device_id:
+        raise OrderActionError("forbidden", "无权操作该订单")
+    if not lc.can_cancel(o.status):
+        raise OrderActionError("conflict", "该订单已签收或不可取消")
+    repo.set_cancelled(conn, order_id, now)
+    conn.commit()
+
+
+def request_return(conn, order_id, device_id, reason, note, now, step, window) -> None:
+    o = _fresh(conn, order_id, now, step)
+    if o.device_id != device_id:
+        raise OrderActionError("forbidden", "无权操作该订单")
+    if not (reason or "").strip():
+        raise OrderActionError("bad_request", "请填写退货原因")
+    if not lc.can_request_return(o.status, _return_elapsed(o, now), window):
+        raise OrderActionError("conflict", "该订单不可退货(未签收或超 7 天窗口)")
+    repo.set_return(conn, order_id, reason.strip(), (note or "").strip() or None)
+    conn.commit()
+
+
+def approve_return(conn, order_id: int, now: str) -> None:
+    o = repo.order_by_id(conn, order_id)
+    if o and o.status == "return_review":
+        repo.update_status(conn, order_id, "refunded", manual=1)
+        conn.commit()
+
+
+def reject_return(conn, order_id: int) -> None:
+    o = repo.order_by_id(conn, order_id)
+    if o and o.status == "return_review":
+        repo.update_status(conn, order_id, "return_rejected", manual=1)
+        conn.commit()
+
+
+def fast_forward_return_window(conn, order_id: int, now: str, window: int) -> None:
+    """演示:把签收时刻拨到窗口外,令退货过期。"""
+    o = repo.order_by_id(conn, order_id)
+    if o and o.delivered_at:
+        from datetime import timedelta
+        repo.set_delivered_at(conn, order_id, _fmt(_parse(now) - timedelta(seconds=window + 60)))
+        conn.commit()
+
+
+def returns_list(conn) -> list[OrderWithItems]:
+    return [_with_items(conn, o) for o in repo.returns_orders(conn)]

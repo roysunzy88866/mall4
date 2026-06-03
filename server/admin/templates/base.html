@@ -67,7 +67,7 @@
     <a class="nav-item {{ 'active' if ep=='admin.products_page' }}" href="{{ url_for('admin.products_page') }}"><span class="ico">📦</span>商品</a>
     <a class="nav-item {{ 'active' if ep=='admin.banners_page' }}" href="{{ url_for('admin.banners_page') }}"><span class="ico">⭐</span>推荐位</a>
     <a class="nav-item {{ 'active' if ep.startswith('admin.order') }}" href="{{ url_for('admin.orders_page') }}"><span class="ico">🧾</span>订单</a>
-    {% block extranav %}{% endblock %}
+    <a class="nav-item {{ 'active' if ep.startswith('admin.return') }}" href="{{ url_for('admin.returns_page') }}"><span class="ico">↩️</span>退货审核</a>
     <a class="logout" href="{{ url_for('admin.logout') }}">↩ 退出登录</a>
   </aside>
   <main class="main">

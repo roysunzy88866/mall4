@@ -17,6 +17,9 @@ _ORDER_MIGRATIONS = {
     "clock_base_at": "ALTER TABLE orders ADD COLUMN clock_base_at TEXT",
     "manual": "ALTER TABLE orders ADD COLUMN manual INTEGER NOT NULL DEFAULT 0",
     "delivered_at": "ALTER TABLE orders ADD COLUMN delivered_at TEXT",
+    "return_reason": "ALTER TABLE orders ADD COLUMN return_reason TEXT",
+    "return_note": "ALTER TABLE orders ADD COLUMN return_note TEXT",
+    "cancelled_at": "ALTER TABLE orders ADD COLUMN cancelled_at TEXT",
 }
 
 
