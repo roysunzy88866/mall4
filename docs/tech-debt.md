@@ -19,7 +19,7 @@
 - **位置**:`server/seed.py` 的 `round(price_yuan * 100)`(将来「后台商品 CRUD」会复用此换算)。
 - **问题**:`round()` 经浮点 + 银行家舍入,对 `X.X5` 结尾价可能偏 1 分。当前 seed 全整数价,未触发;后台录入任意价时会成真 bug。
 - **修复**:把元→分换算抽进 `rules` 纯函数,用 `Decimal`,补 `X.X5` 价单测。
-- **计划**:随「后台商品管理」change。状态:⏳ 未闭合。
+- **状态**:✅ 闭合(2026-06-03,admin-console 批1:换算抽进 `rules/money`(Decimal + `X.X5` 单测),seed 与车机接口改用它)。
 
 ## DEBT-2026-06-004 · 详情主图 / 图集语义未被测试钉住 🟡 MINOR
 - **位置**:`server/api/routes.py` 详情图集、`catalog-browsing` spec「1~4 张、首张为主图」。

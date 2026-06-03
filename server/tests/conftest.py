@@ -13,7 +13,17 @@ def cfg(tmp_path):
         uploads_dir=str(tmp_path / "uploads"),
         host="127.0.0.1",
         port=0,
+        secret_key="test-secret",
+        admin_username="admin",
+        admin_password="test-pass",
     )
+
+
+@pytest.fixture
+def admin_client(client):
+    """已登录的后台客户端。"""
+    client.post("/admin/login", data={"username": "admin", "password": "test-pass"})
+    return client
 
 
 @pytest.fixture

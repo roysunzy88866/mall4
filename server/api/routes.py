@@ -6,6 +6,7 @@ from flask import Blueprint, current_app, g, jsonify, request
 
 from server import db
 from server.models.entities import OrderLineInput
+from server.rules import money
 from server.services import catalog_service as svc
 from server.services import order_service as order_svc
 
@@ -19,7 +20,7 @@ def _conn():
 
 
 def _yuan(cents: int) -> str:
-    return f"{cents / 100:.2f}"
+    return money.cents_to_yuan(cents)
 
 
 def _now() -> str:

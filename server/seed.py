@@ -4,6 +4,7 @@ import base64
 import os
 
 from server.data.seed_data import BANNER_PIDS, CATEGORIES, PRODUCTS, SEED_ORDERS
+from server.rules.money import yuan_to_cents
 
 # 1x1 透明 PNG 占位图(真实商品图后续替换;此处仅让图片 URL 能解析到一个文件)
 _PLACEHOLDER_PNG = base64.b64decode(
@@ -44,7 +45,7 @@ def seed_if_empty(conn, uploads_dir: str) -> None:
         conn.execute(
             "INSERT INTO products (name, price_cents, description, stock, category_id, sort_order, created_at) "
             "VALUES (?,?,?,?,?,?,?)",
-            (name, round(price_yuan * 100), desc, 99, cat_id[catkey], idx, created),
+            (name, yuan_to_cents(price_yuan), desc, 99, cat_id[catkey], idx, created),
         )
         pid[pkey] = _last_id(conn)
         conn.execute(
