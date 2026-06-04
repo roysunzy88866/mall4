@@ -95,7 +95,7 @@
 
 **通用**
 1. 修改范围最小化:非本任务文件不顺手改;发现更大问题先报告 + 记 [docs/tech-debt.md](docs/tech-debt.md),不借机大改。
-2. 不假设环境:任何 hardcode 路径/端口/URL/账号/密码 → 走配置(env/config/BuildConfig);代码里不许出现 `localhost:18767` / `/Users/Admin/...` / `‹REDACTED›`。
+2. 不假设环境:任何 hardcode 路径/端口/URL/账号/密码 → 走配置(env/config/BuildConfig);代码里不许出现 `localhost:18767` / `/Users/Admin/...` / 后台明文口令。
 3. 加新依赖前记决策(跨切片影响则开 ADR)。
 4. 模块顶部 docstring 声明依赖/暴露。
 5. 命名:布尔 `is_*`/`has_*`/`can_*`;风格由 ruff/ktlint 强制。

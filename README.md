@@ -49,7 +49,7 @@ JAVA_HOME=$(/usr/libexec/java_home -v 17) ./gradlew :app:testDebugUnitTest
 
 ## 部署(Mac mini)
 复用 `panqian-tunnel`。**真后台(Flask 全应用)已上线**:
-- 公网:**https://mall4-admin.hearagain.space**(`/admin` 后台 + `/api` 车机接口);账号 `admin / ‹REDACTED›`。
+- 公网:**https://mall4-admin.hearagain.space**(`/admin` 后台 + `/api` 车机接口);账号 `admin / ‹口令见部署环境变量,未入库›`。
 - Mac mini 上:代码 `~/ridemall4/`、Python 3.11 venv、launchd `com.user.ridemall4`(端口 18776,cloudflared 已路由)、启动脚本 `~/ridemall4/run_prod.sh`、日志 `~/ridemall4/.logs/`。
 - 更新部署:`rsync server run.py macmini:~/ridemall4/ && ssh macmini 'launchctl kickstart -k gui/$(id -u)/com.user.ridemall4'`。
 
