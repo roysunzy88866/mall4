@@ -28,11 +28,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            // 演示走公网(需求共识 F6:mall4.hearagain.space)。
+            // 演示走公网(需求共识 F6:mall4-admin.hearagain.space)。
             buildConfigField(
                 "String",
                 "API_BASE_URL",
-                "\"https://mall4.hearagain.space/\"",
+                "\"https://mall4-admin.hearagain.space/\"",
             )
             // 用 debug 签名,免配 release keystore 即可装模拟器演示。
             signingConfig = signingConfigs.getByName("debug")

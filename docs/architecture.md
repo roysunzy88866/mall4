@@ -9,7 +9,7 @@
                                               ├──> 后端 Flask ──> SQLite
 管理员浏览器 ──HTTP / 网页表单──────────────────┘         └─ 商品图存 server/uploads/,以 URL 提供
                                                   后台用 Jinja2 服务端渲染
-部署:Mac mini + Cloudflared tunnel @ mall4.hearagain.space(复用 panqian-tunnel)
+部署:Mac mini + Cloudflared tunnel @ mall4-admin.hearagain.space(复用 panqian-tunnel)
 ```
 
 ## 后端分层(务实 4 层 + 业务规则)

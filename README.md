@@ -44,12 +44,12 @@ JAVA_HOME=$(/usr/libexec/java_home -v 17) ./gradlew :app:assembleDebug
 # 车机端纯逻辑单测(价格/图URL/映射/设备号/轮播)
 JAVA_HOME=$(/usr/libexec/java_home -v 17) ./gradlew :app:testDebugUnitTest
 ```
-- base URL 走 `BuildConfig.API_BASE_URL`:debug=`http://10.0.2.2:8000`(模拟器→宿主),release=`https://mall4.hearagain.space`(公网)。不硬编码。
+- base URL 走 `BuildConfig.API_BASE_URL`:debug=`http://10.0.2.2:8000`(模拟器→宿主),release=`https://mall4-admin.hearagain.space`(公网)。不硬编码。
 - 车机本地只存一个设备号(SharedPreferences),不缓存任何业务数据。
 
 ## 部署(Mac mini)
 复用 `panqian-tunnel`。**真后台(Flask 全应用)已上线**:
-- 公网:**https://mall4.hearagain.space**(`/admin` 后台 + `/api` 车机接口);账号 `admin / ‹REDACTED›`。
+- 公网:**https://mall4-admin.hearagain.space**(`/admin` 后台 + `/api` 车机接口);账号 `admin / ‹REDACTED›`。
 - Mac mini 上:代码 `~/ridemall4/`、Python 3.11 venv、launchd `com.user.ridemall4`(端口 18776,cloudflared 已路由)、启动脚本 `~/ridemall4/run_prod.sh`、日志 `~/ridemall4/.logs/`。
 - 更新部署:`rsync server run.py macmini:~/ridemall4/ && ssh macmini 'launchctl kickstart -k gui/$(id -u)/com.user.ridemall4'`。
 

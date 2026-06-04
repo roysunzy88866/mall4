@@ -1,7 +1,7 @@
 # CLAUDE.md · RIDEMALL 车载商店 工作纪律
 
 > 每次进入本项目自动加载,是**我必须遵守的铁律**;本文件硬上限 200 行。
-> 品牌 **RIDEMALL** · 工作目录 `商店4` · 公网 `mall4.hearagain.space` · 后台口令见 [需求共识.md §3](需求共识.md)。
+> 品牌 **RIDEMALL** · 工作目录 `商店4` · 公网 `mall4-admin.hearagain.space` · 后台口令见 [需求共识.md §3](需求共识.md)。
 > **本项目用 OpenSpec 管理变更**(见下「OpenSpec 工作流」)。
 
 ---

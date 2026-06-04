@@ -9,7 +9,7 @@ RIDEMALL 车载商店 **demo**:车机 Android 横屏商城(1920×1080)+ 网页�
 - 后端:Python + Flask + SQLite;商品图存 `server/uploads/` 以 URL 提供
 - 车机端:Kotlin + Jetpack Compose(minSdk 26)
 - 后台:Bootstrap 5 + Jinja2(服务端渲染)
-- 部署:Mac mini + Cloudflared tunnel @ `mall4.hearagain.space`(复用 panqian-tunnel)
+- 部署:Mac mini + Cloudflared tunnel @ `mall4-admin.hearagain.space`(复用 panqian-tunnel)
 
 ## Architecture(务实分层 · ADR-0001)
 后端:接口层(views)→ 业务层(services,事务边界)→ 数据层(repositories)→ 数据表(models)+ 业务规则(rules,纯函数,100% 单测)。

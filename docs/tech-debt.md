@@ -47,6 +47,12 @@
 - **修复**:把 Oxanium / Noto Sans SC 的 `.ttf` 放进 `android/app/src/main/assets/fonts/`,在 `Type.kt` 把 `BodyFamily`/`NumberFamily` 指过去(单点切换,已留好)。
 - **状态**:⏳ 未闭合(见 car-storefront-browse design.md D10)。**阻塞:需 Oxanium / Noto Sans SC 的 `.ttf` 文件**(此前沙箱网络取不到)。把文件放进 `android/app/src/main/assets/fonts/`,`Type.kt` 的 `BodyFamily`/`NumberFamily` 指过去即可(单点切换已留好)。用户可提供或允许联网下载。
 
+## DEBT-2026-06-010 · 品牌域名 mall4 未启用,现用 mall4-admin 🟢 MINOR · 计划内
+- **位置**:公网部署 / `android/app/build.gradle.kts` release / 共识 §3 F6。
+- **问题**:共识 2026-06-03 曾计划公网用品牌子域 `mall4.hearagain.space`,但该子域 DNS/隧道从未配置(2026-06-04 实测 `dig` 无记录、`curl` SSL 失败),实际部署在 `mall4-admin.hearagain.space`(Cloudflare,返 200)。文档/配置/共识已统一校正为 `mall4-admin`(见 [ADR-0013](adr/0013-public-domain-correction.md))。
+- **修复(若要迁回品牌域 mall4)**:配 `mall4` 子域 DNS + Cloudflared 路由 → 改 release `API_BASE_URL` + 文档 → 重出 release APK。
+- **状态**:⏳ 未闭合(低优;`mall4-admin` 当前可用,迁移非演示必须)。
+
 ## DEBT-2026-06-009 · 车机分支态步条/物流重置为灰 🟢 MINOR
 - **位置**:`android/.../ui/orders/OrderDetailScreen.kt` 状态步条 + 物流时间线;`rules/lifecycle.py` logistics_nodes/stage_index 对分支态返回 -1/0。
 - **问题**:订单进入分支态(退货审核中/已取消/已退款/退货被拒)后,stage_index=-1,步条与物流按主阶段重置为灰;实际该单可能曾走到已签收。分支态信息已由徽章+退货原因卡清晰展示,功能不受影响。

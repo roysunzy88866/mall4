@@ -10,5 +10,6 @@
 | [0005](0005-banner-recommendation.md) | 推荐位 3~5 张 + 上移/下移 | 迁自 02版本 |
 | [0011](0011-post-payment-navigate-to-orders.md) | 支付成功后进订单页 | 迁自 02版本 |
 | [0012](0012-order-lifecycle-upgrade.md) | 订单全生命周期升级(购物车/物流/退换货)—— 反转共识 §2 三项排除 | 本轮(商店4) |
+| [0013](0013-public-domain-correction.md) | 公网域名校正 mall4 → mall4-admin(mall4 子域从未启用,以实际部署为准) | 本轮(商店4) |
 
 > ⚠️ **0004 / 0005 / 0011 迁自上一轮项目(车载商店02版本)**。文内对 `docs/story-map.md`、`docs/user-stories.md`、`docs/architecture/backend.md` 等的「see also」链接指向旧目录结构,**本轮已用 OpenSpec `openspec/specs/` + `docs/architecture.md` 替代,那些链接可忽略**。决策结论本身仍有效,且已并入 [需求共识.md](../../需求共识.md) 正文。
