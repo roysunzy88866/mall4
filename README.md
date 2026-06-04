@@ -48,4 +48,13 @@ JAVA_HOME=$(/usr/libexec/java_home -v 17) ./gradlew :app:testDebugUnitTest
 - 车机本地只存一个设备号(SharedPreferences),不缓存任何业务数据。
 
 ## 部署(Mac mini)
-复用 `panqian-tunnel`,公网 **https://mall4.hearagain.space**。演示完一键下线:`launchctl unload <plist>` → 公网立即 404。
+复用 `panqian-tunnel`。**真后台(Flask 全应用)已上线**:
+- 公网:**https://mall4-admin.hearagain.space**(`/admin` 后台 + `/api` 车机接口);账号 `admin / ‹REDACTED›`。
+- Mac mini 上:代码 `~/ridemall4/`、Python 3.11 venv、launchd `com.user.ridemall4`(端口 18776,cloudflared 已路由)、启动脚本 `~/ridemall4/run_prod.sh`、日志 `~/ridemall4/.logs/`。
+- 更新部署:`rsync server run.py macmini:~/ridemall4/ && ssh macmini 'launchctl kickstart -k gui/$(id -u)/com.user.ridemall4'`。
+
+> 🔴 **安全债(共识 §3 已接受)**:弱口令 + 公网。**演示完必须一键下线**:
+> ```
+> ssh macmini 'launchctl unload ~/Library/LaunchAgents/com.user.ridemall4.plist'
+> ```
+> 下线后公网 502/404。车机 release 包指向公网;debug 包指向 `10.0.2.2:8000` 本地。
