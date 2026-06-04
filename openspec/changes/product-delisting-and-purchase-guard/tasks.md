@@ -47,4 +47,4 @@
 - [x] 7.1 `pytest` 全绿(122 passed)+ `rules` 100% 覆盖闸门过;车机单测全绿(OrderErrorTest 2/2 + 不回归)
 - [x] 7.2 `openspec validate product-delisting-and-purchase-guard --strict` 过
 - [x] 7.3 中文人话交付报告(逐条对验收场景)
-- [ ] 7.4 (ops,代码外)部署 + 迁移自动跑 + 重出车机包 + 模拟器实测下架/下单拦截;碰 prod 前确认授权
+- [x] 7.4 (ops)已部署 mall4-admin(rsync+kickstart)+ 迁移自动加 is_active(prod 19/19 在架)+ 重出 release APK 装 ridemall-car;**公网实测**(真实 admin toggle):下架→详情 404 + 下单 409 + 上架还原(净零);**模拟器实测**:下架→品质生活 3→2 件商品消失、点旧卡→「商品已下架」+「返回」可退出(死页已修)。〔409 下单提示 overlay 由后端 prod 409 + 单测 + 编译保障,未单独走完整购买流手测〕
