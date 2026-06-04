@@ -54,3 +54,31 @@ def test_admin_advance_one(admin_client, conn):
     admin_client.get(f"/admin/orders/{oid}")
     row = conn.execute("SELECT status FROM orders WHERE id=?", (oid,)).fetchone()
     assert row["status"] == "shipping"
+
+
+def test_dashboard_status_distribution_is_chinese(admin_client, conn):
+    # 造一笔分支态订单(已取消),仪表盘状态分布应显中文、不漏英文码
+    admin_client.post(
+        "/api/orders",
+        json={"items": [{"product_id": 1, "name": "x", "image": None, "price_cents": 100, "qty": 1}]},
+        headers={"X-Device-Id": "dash-dev"},
+    )
+    oid = conn.execute("SELECT id FROM orders WHERE device_id='dash-dev'").fetchone()["id"]
+    admin_client.post(f"/api/orders/{oid}/cancel", headers={"X-Device-Id": "dash-dev"})
+    html = admin_client.get("/admin/").get_data(as_text=True)
+    assert "已取消" in html
+    assert ">cancelled<" not in html  # 不再漏英文状态码
+
+
+def test_admin_deliver_jumps_to_delivered(admin_client, conn):
+    admin_client.post(
+        "/api/orders",
+        json={"items": [{"product_id": 1, "name": "x", "image": None, "price_cents": 100, "qty": 1}]},
+        headers={"X-Device-Id": "dlv-dev"},
+    )
+    oid = conn.execute("SELECT id FROM orders WHERE device_id='dlv-dev'").fetchone()["id"]
+    admin_client.post(f"/admin/orders/{oid}/deliver")  # 一键快进到已签收
+    admin_client.get(f"/admin/orders/{oid}")  # 触发惰性推进
+    row = conn.execute("SELECT status, delivered_at FROM orders WHERE id=?", (oid,)).fetchone()
+    assert row["status"] == "delivered"
+    assert row["delivered_at"] is not None

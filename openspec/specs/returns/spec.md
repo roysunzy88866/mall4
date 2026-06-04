@@ -29,7 +29,7 @@ TBD - created by archiving change cancel-and-return. Update Purpose after archiv
 
 ### Requirement: 后台退货审核
 
-`return_review` 订单,后台 SHALL 可**通过**(状态 → `returning` → `refunded`,退款 mock)或**拒绝**(状态 → `return_rejected`)。后台退货审核页 SHALL 列出待审/已处理的退货申请。后台 SHALL 提供「快进退货窗口到过期」演示操作。
+`return_review` 订单,后台 SHALL 可**通过**(状态 → `refunded` 已退款,退款为 mock)或**拒绝**(状态 → `return_rejected`)。`returning`(退货中)为**预留态**:本 demo 审核通过即一步退款,不经过该中间态(见 cancel-and-return design.md R3)。后台退货审核页 SHALL 列出待审/已处理的退货申请。后台 SHALL 提供「快进退货窗口到过期」演示操作。
 
 #### Scenario: 通过退货
 - **WHEN** 管理员通过一笔 `return_review` 退货

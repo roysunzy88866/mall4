@@ -82,7 +82,7 @@ def dashboard():
     for o in orders_repo.all_orders(conn):
         dist[o.status] = dist.get(o.status, 0) + 1
     status_dist = [
-        {"status": s, "label": lc.STAGE_LABELS.get(s, s), "count": c}
+        {"status": s, "label": lc.status_label(s), "count": c}
         for s, c in sorted(dist.items(), key=lambda kv: lc.stage_index(kv[0]))
     ]
     return render_template("dashboard.html", stats=stats, status_dist=status_dist)

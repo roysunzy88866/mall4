@@ -93,11 +93,11 @@ def admin_advance_one(conn, order_id: int, step: int) -> None:
 
 
 def admin_advance_delivered(conn, order_id: int, now: str, step: int) -> None:
-    """快进到已签收。"""
+    """快进到已签收:直接置 delivered(接管),对任意主阶段都生效;分支态(取消/退货)不动。"""
     o = repo.order_by_id(conn, order_id)
-    if o is None:
+    if o is None or lc.stage_index(o.status) < 0:
         return
-    repo.set_clock_base(conn, order_id, _fmt(_parse(now) - timedelta(seconds=3 * step)))
+    repo.update_status(conn, order_id, "delivered", manual=1, delivered_at=now)
     conn.commit()
 
 

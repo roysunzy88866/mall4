@@ -91,3 +91,29 @@ def test_returns_page_loads(admin_client, client, conn):
     client.post(f"/api/orders/{oid}/return", json={"reason": "质量问题"}, headers=DEV)
     html = admin_client.get("/admin/returns").get_data(as_text=True)
     assert "退货审核" in html and "质量问题" in html
+
+
+def test_admin_expire_return_window(client, admin_client, conn):
+    oid = _place(client)
+    _make_delivered(conn, oid, delivered_secs_ago=10)
+    assert client.get(f"/api/orders/{oid}", headers=DEV).get_json()["can_return"] is True
+    admin_client.post(f"/admin/orders/{oid}/expire-return")  # 快进窗口到过期
+    o = client.get(f"/api/orders/{oid}", headers=DEV).get_json()
+    assert o["can_return"] is False
+    # 过期后再申请退货被拒
+    assert client.post(f"/api/orders/{oid}/return", json={"reason": "x"}, headers=DEV).status_code == 409
+
+
+def test_approve_non_review_is_noop(client, admin_client, conn):
+    oid = _place(client)  # paid,非 return_review
+    admin_client.post(f"/admin/returns/{oid}/approve")  # 守卫:应无操作
+    assert conn.execute("SELECT status FROM orders WHERE id=?", (oid,)).fetchone()["status"] == "paid"
+
+
+def test_double_approve_is_noop(client, admin_client, conn):
+    oid = _place(client)
+    _make_delivered(conn, oid)
+    client.post(f"/api/orders/{oid}/return", json={"reason": "x"}, headers=DEV)
+    admin_client.post(f"/admin/returns/{oid}/approve")  # → refunded
+    admin_client.post(f"/admin/returns/{oid}/approve")  # 再次通过:已非 review,无操作
+    assert conn.execute("SELECT status FROM orders WHERE id=?", (oid,)).fetchone()["status"] == "refunded"
