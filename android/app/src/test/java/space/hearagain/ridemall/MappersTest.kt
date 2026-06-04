@@ -1,16 +1,36 @@
 package space.hearagain.ridemall
 
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import space.hearagain.ridemall.data.api.BannerDto
 import space.hearagain.ridemall.data.api.CategoryDto
 import space.hearagain.ridemall.data.api.HomeDto
+import space.hearagain.ridemall.data.api.OrderDto
 import space.hearagain.ridemall.data.api.ProductDto
 import space.hearagain.ridemall.data.repository.toModel
 
 class MappersTest {
     private val base = "http://10.0.2.2:8000/"
+
+    // 回归:已删商品的订单快照 product_id=null,曾让整张订单列表 Moshi 解析崩 → 误报「网络异常」。
+    @Test fun order_dto_parses_null_product_id_without_crash() {
+        val json = """
+            {"id":9,"device_id":"d","status":"delivered","created_at":"t","total":"200.00",
+             "total_cents":20000,"can_cancel":false,"can_return":true,"logistics":[],
+             "items":[{"product_id":null,"name":"加油卡测试","image":null,"price":"200.00",
+                       "price_cents":20000,"qty":1}]}
+        """.trimIndent()
+        val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+        val dto = moshi.adapter(OrderDto::class.java).fromJson(json)!!
+        assertNull(dto.items[0].productId)            // DTO 接受 null,不抛
+        val order = dto.toModel(base)
+        assertEquals(0, order.items[0].productId)      // 映射占位 0
+        assertEquals("加油卡测试", order.items[0].name)
+        assertEquals(20000, order.items[0].priceCents)
+    }
 
     @Test fun product_dto_maps_with_price_label() {
         val dto = ProductDto(19, "车载垃圾桶 带盖", "29.00", 2900, "磁吸开合", 5)

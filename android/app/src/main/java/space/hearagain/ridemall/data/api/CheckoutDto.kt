@@ -42,7 +42,9 @@ data class OrderDto(
 data class ReturnBody(val reason: String, val note: String?)
 
 data class OrderItemDto(
-    @Json(name = "product_id") val productId: Int,
+    // product_id 可空:商品被删后订单快照里该引用为 null(后端守「快照不受删除影响」),
+    // 车机 DTO 必须接受 null,否则整张订单列表 Moshi 解析失败 → 误报「网络异常」。
+    @Json(name = "product_id") val productId: Int?,
     val name: String,
     val image: String?,
     val price: String,

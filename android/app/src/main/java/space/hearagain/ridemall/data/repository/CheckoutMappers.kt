@@ -23,7 +23,7 @@ fun ProductDetailDto.toModel(baseUrl: String): ProductDetail = ProductDetail(
 )
 
 fun OrderItemDto.toModel(baseUrl: String): OrderItem = OrderItem(
-    productId = productId,
+    productId = productId ?: 0,  // 已删商品快照 product_id=null;展示不用此字段,占位 0
     name = name,
     imageUrl = resolveImageUrl(image, baseUrl),
     priceLabel = priceLabel(price),
