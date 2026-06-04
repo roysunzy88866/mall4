@@ -39,4 +39,4 @@
 - [x] 6.2 `openspec validate product-images-and-catalog-ux --strict` 过
 - [x] 6.3 闭合 DEBT-2026-06-007(`docs/tech-debt.md` 标 ✅);另记 DEBT-011(编辑清空描述,题外发现)
 - [x] 6.4 中文人话交付报告
-- [ ] 6.5 (ops · 单独确认后)部署后端到 mall4-admin + 脚本按商品名挂图 URL + 重出车机 release 包 + 模拟器实测
+- [x] 6.5 (ops)部署后端到 mall4-admin(rsync+kickstart)+ 按商品名挂 11 张真实图 URL 到公网库 + 重出车机 release 包装模拟器 + 实测:车机商品卡/banner 出真图、后台缩略图预览生效(11/19,另 8 个无匹配图保持占位)
