@@ -91,6 +91,10 @@ def insert_product_image(conn, product_id: int, url: str, sort_order: int) -> No
     )
 
 
+def delete_product_images(conn, product_id: int) -> None:
+    conn.execute("DELETE FROM product_images WHERE product_id=?", (product_id,))
+
+
 def delete_product(conn, product_id: int) -> None:
     # D8:订单整单快照独立,删商品时把订单行的引用置空(快照名/图/价保留),并清图与推荐位
     conn.execute("UPDATE order_items SET product_id=NULL WHERE product_id=?", (product_id,))

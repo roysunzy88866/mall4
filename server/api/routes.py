@@ -37,7 +37,7 @@ def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-def _product_json(p) -> dict:
+def _product_json(p, image=None) -> dict:
     return {
         "id": p.id,
         "name": p.name,
@@ -45,6 +45,7 @@ def _product_json(p) -> dict:
         "price_cents": p.price_cents,
         "description": p.description,
         "category_id": p.category_id,
+        "image": image,
     }
 
 
@@ -91,11 +92,13 @@ def _order_json(ow, logistics=None, can_cancel=False, can_return=False) -> dict:
 
 @bp.get("/home")
 def home():
-    data = svc.home_data(_conn())
+    conn = _conn()
+    data = svc.home_data(conn)
+    images = svc.main_image_urls(conn, data.recommended)
     return jsonify(
         {
             "banners": [_banner_json(b) for b in data.banners],
-            "recommended": [_product_json(p) for p in data.recommended],
+            "recommended": [_product_json(p, images.get(p.id)) for p in data.recommended],
         }
     )
 
@@ -108,8 +111,10 @@ def categories():
 
 @bp.get("/categories/<int:category_id>/products")
 def category_products(category_id: int):
-    items = svc.category_products(_conn(), category_id)
-    return jsonify([_product_json(p) for p in items])
+    conn = _conn()
+    items = svc.category_products(conn, category_id)
+    images = svc.main_image_urls(conn, items)
+    return jsonify([_product_json(p, images.get(p.id)) for p in items])
 
 
 @bp.get("/products/<int:product_id>")
@@ -118,7 +123,8 @@ def product_detail(product_id: int):
         detail = svc.product_detail(_conn(), product_id)
     except svc.ProductNotFound:
         return jsonify({"error": "商品已下架"}), 404
-    payload = _product_json(detail.product)
+    main = detail.images[0].url if detail.images else None
+    payload = _product_json(detail.product, main)
     payload["images"] = [img.url for img in detail.images]
     return jsonify(payload)
 

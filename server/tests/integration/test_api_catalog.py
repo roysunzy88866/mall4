@@ -73,3 +73,28 @@ def test_product_detail_not_found(client):
     resp = client.get("/api/products/999999")
     assert resp.status_code == 404
     assert resp.get_json()["error"]
+
+
+def test_home_recommended_includes_main_image(client):
+    rec = client.get("/api/home").get_json()["recommended"]
+    assert rec
+    assert all("image" in p for p in rec)
+    assert any(p["image"] for p in rec)  # seed 商品有占位图 → 主图非空
+
+
+def test_category_products_include_main_image(client):
+    items = client.get("/api/categories/1/products").get_json()
+    assert items
+    assert all("image" in p for p in items)
+    assert all(p["image"] for p in items)  # seed 全部带占位图
+
+
+def test_product_without_image_returns_null_image(client, conn):
+    conn.execute(
+        "INSERT INTO products (name, price_cents, description, stock, category_id, sort_order, created_at) "
+        "VALUES ('无图商品', 1000, '', 0, 1, 999, '2026-05-01 09:00:00')"
+    )
+    conn.commit()
+    items = client.get("/api/categories/1/products").get_json()
+    noimg = next(p for p in items if p["name"] == "无图商品")
+    assert noimg["image"] is None

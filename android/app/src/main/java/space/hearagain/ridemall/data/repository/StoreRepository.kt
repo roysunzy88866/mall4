@@ -21,7 +21,7 @@ class StoreRepository(
     suspend fun categories(): List<NavCategory> = api.categories().map { it.toModel() }
 
     suspend fun categoryProducts(categoryId: Int): List<Product> =
-        api.categoryProducts(categoryId).map { it.toModel() }
+        api.categoryProducts(categoryId).map { it.toModel(baseUrl) }
 
     suspend fun productDetail(productId: Int): ProductDetail =
         api.productDetail(productId).toModel(baseUrl)

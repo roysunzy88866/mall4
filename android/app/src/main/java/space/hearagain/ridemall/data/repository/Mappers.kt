@@ -14,13 +14,14 @@ import space.hearagain.ridemall.util.resolveImageUrl
 /**
  * DTO → UI Model 映射(纯函数,可单测)。在此完成价格加 ¥、图 URL 补全两条呈现规则。
  */
-fun ProductDto.toModel(): Product = Product(
+fun ProductDto.toModel(baseUrl: String): Product = Product(
     id = id,
     name = name,
     priceLabel = priceLabel(price),
     priceCents = priceCents,
     description = description ?: "",
     categoryId = categoryId,
+    imageUrl = resolveImageUrl(image, baseUrl),
 )
 
 fun BannerDto.toModel(baseUrl: String): Banner = Banner(
@@ -36,5 +37,5 @@ fun CategoryDto.toModel(): NavCategory = NavCategory(id = id, name = name)
 
 fun HomeDto.toModel(baseUrl: String): HomeData = HomeData(
     banners = banners.map { it.toModel(baseUrl) },
-    recommended = recommended.map { it.toModel() },
+    recommended = recommended.map { it.toModel(baseUrl) },
 )

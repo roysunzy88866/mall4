@@ -18,7 +18,7 @@
 </form>
 
 {% for p in products %}
-<form method="post" class="card mb-2"><div class="card-body row g-2 align-items-center">
+<form method="post" class="card mb-2" enctype="multipart/form-data"><div class="card-body row g-2 align-items-center">
   <div class="col"><input class="form-control form-control-sm" name="name" value="{{ p.name }}"></div>
   <div class="col-auto">
     <select class="form-select form-select-sm" name="category_id">
@@ -27,6 +27,7 @@
   </div>
   <div class="col-auto"><input class="form-control form-control-sm" name="price" value="{{ p.price_cents | yuan }}" style="width:7rem"></div>
   <div class="col-auto"><input class="form-control form-control-sm" name="stock" value="{{ p.stock }}" style="width:5rem"></div>
+  <div class="col-auto"><input class="form-control form-control-sm" type="file" name="image" title="换主图(留空保持原图)"></div>
   <div class="col-auto">
     <button class="btn btn-sm btn-outline-primary" type="submit" formaction="{{ url_for('admin.product_update', product_id=p.id) }}">保存</button>
     <button class="btn btn-sm btn-outline-danger" type="submit" formaction="{{ url_for('admin.product_delete', product_id=p.id) }}">删除</button>

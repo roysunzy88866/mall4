@@ -117,8 +117,13 @@ class StoreViewModel(private val repo: StoreRepository) : ViewModel() {
         _state.update { it.copy(route = route, content = ContentState.Loading) }
         browseRoute = route
         viewModelScope.launch {
-            runCatching { repo.categoryProducts(category.id) }
-                .onSuccess { products -> _state.update { it.copy(content = ContentState.CategoryLoaded(products)) } }
+            // 切分类时同时重拉分类列表,使后台改的分类名/顺序反映到左侧导航
+            runCatching {
+                val cats = repo.categories(); val products = repo.categoryProducts(category.id); cats to products
+            }
+                .onSuccess { (cats, products) ->
+                    _state.update { it.copy(categories = cats, content = ContentState.CategoryLoaded(products)) }
+                }
                 .onFailure { _state.update { it.copy(content = ContentState.NetworkError) } }
         }
     }

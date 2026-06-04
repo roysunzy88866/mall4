@@ -52,6 +52,15 @@ def category_products(conn, category_id: int) -> list[Product]:
     return repo.products_by_category(conn, category_id)
 
 
+def main_image_urls(conn, products) -> dict[int, str | None]:
+    """每个商品的主图(图集首张)URL,无图为 None。供列表接口给商品卡配图。"""
+    result: dict[int, str | None] = {}
+    for p in products:
+        imgs = repo.images_for_product(conn, p.id)
+        result[p.id] = imgs[0].url if imgs else None
+    return result
+
+
 def product_detail(conn, product_id: int) -> ProductDetail:
     product = repo.product_by_id(conn, product_id)
     if product is None:

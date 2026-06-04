@@ -1,4 +1,6 @@
 """后台推荐位管理 集成测试(admin-console 批3)。seed 预置 4 个推荐位。"""
+import json
+import re
 
 
 def _count(conn):
@@ -45,3 +47,17 @@ def test_move_banner_down_swaps_sort(admin_client, conn):
     admin_client.post(f"/admin/banners/{first_id}/move", data={"direction": "down"})
     new_sort = conn.execute("SELECT sort_order FROM banners WHERE id=?", (first_id,)).fetchone()["sort_order"]
     assert new_sort == second_sort
+
+
+def test_banner_select_is_grouped_by_category(admin_client, conn):
+    # 推荐位选择改为「先选分类→再选商品」:两级下拉 + 内嵌按分类分组的数据
+    html = admin_client.get("/admin/banners").get_data(as_text=True)
+    assert 'id="banner-cat"' in html and 'id="banner-prod"' in html
+    m = re.search(r"BANNER_PRODUCTS = (\{.*\});", html)
+    assert m, "应内嵌按分类分组的可选商品 JSON"
+    grouped = json.loads(m.group(1))
+    # 取一个非推荐位商品,确认它被归到其所属分类分组下
+    row = conn.execute(
+        "SELECT id, category_id FROM products WHERE id NOT IN (SELECT product_id FROM banners) LIMIT 1"
+    ).fetchone()
+    assert row["id"] in [p["id"] for p in grouped[str(row["category_id"])]]

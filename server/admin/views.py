@@ -192,6 +192,9 @@ def product_create():
 @bp.post("/products/<int:product_id>/update")
 @login_required
 def product_update(product_id):
+    image_url, img_err = _save_image(request.files.get("image"))
+    if img_err:
+        return redirect(url_for("admin.products_page", error=img_err))
     name = (request.form.get("name") or "").strip()
     category_id = request.form.get("category_id", type=int)
     if not name or not category_id:
@@ -201,6 +204,7 @@ def product_update(product_id):
             _conn(), product_id, name=name, price_yuan=request.form.get("price", "0"),
             description=request.form.get("description", ""),
             stock=request.form.get("stock", default=0, type=int), category_id=category_id,
+            image_url=image_url,
         )
     except cat_svc.InvalidPrice:
         return redirect(url_for("admin.products_page", error="价格非法"))
@@ -228,8 +232,15 @@ def banners_page():
             "name": p.name if p else "(已删商品)", "price_cents": p.price_cents if p else 0,
         })
     available = [p for p in cw.all_products_admin(conn) if p.id not in banner_pids]
+    categories = cw.all_categories(conn)
+    # 按分类分组可选商品(供「先选分类→再选商品」两级联动)
+    products_by_category = {
+        c.id: [{"id": p.id, "name": p.name} for p in available if p.category_id == c.id]
+        for c in categories
+    }
     return render_template(
-        "banners.html", rows=rows, available=available, count=len(rows), error=request.args.get("error")
+        "banners.html", rows=rows, categories=categories,
+        products_by_category=products_by_category, count=len(rows), error=request.args.get("error"),
     )
 
 

@@ -14,7 +14,7 @@ class MappersTest {
 
     @Test fun product_dto_maps_with_price_label() {
         val dto = ProductDto(19, "车载垃圾桶 带盖", "29.00", 2900, "磁吸开合", 5)
-        val m = dto.toModel()
+        val m = dto.toModel(base)
         assertEquals(19, m.id)
         assertEquals("车载垃圾桶 带盖", m.name)
         assertEquals("¥29.00", m.priceLabel)
@@ -23,8 +23,25 @@ class MappersTest {
     }
 
     @Test fun product_null_description_becomes_empty() {
-        val m = ProductDto(1, "x", "1.00", 100, null, 1).toModel()
+        val m = ProductDto(1, "x", "1.00", 100, null, 1).toModel(base)
         assertEquals("", m.description)
+    }
+
+    @Test fun product_dto_maps_absolute_image() {
+        // 列表接口返主图(绝对 URL)→ imageUrl 原样
+        val dto = ProductDto(1, "n", "1.00", 100, "d", 1, "https://cdn.example.com/a.jpg")
+        assertEquals("https://cdn.example.com/a.jpg", dto.toModel(base).imageUrl)
+    }
+
+    @Test fun product_dto_resolves_relative_image() {
+        // 相对路径 → 用 baseUrl 补全
+        val dto = ProductDto(1, "n", "1.00", 100, "d", 1, "/uploads/p.png")
+        assertEquals("http://10.0.2.2:8000/uploads/p.png", dto.toModel(base).imageUrl)
+    }
+
+    @Test fun product_null_image_maps_null() {
+        val m = ProductDto(1, "n", "1.00", 100, "d", 1, null).toModel(base)
+        assertNull(m.imageUrl)
     }
 
     @Test fun banner_dto_maps_and_resolves_image() {

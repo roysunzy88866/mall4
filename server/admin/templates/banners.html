@@ -4,12 +4,39 @@
 {% if error %}<div class="alert alert-warning">{{ error }}</div>{% endif %}
 <form class="row g-2 mb-3" method="post" action="{{ url_for('admin.banner_add') }}">
   <div class="col-auto">
-    <select class="form-select" name="product_id">
-      {% for p in available %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}
+    <select class="form-select" id="banner-cat">
+      <option value="">— 选分类 —</option>
+      {% for c in categories %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <select class="form-select" id="banner-prod" name="product_id">
+      <option value="">— 先选分类 —</option>
     </select>
   </div>
   <div class="col-auto"><button class="btn btn-primary" type="submit">加入推荐位</button></div>
 </form>
+<script>
+  // 先选分类 → 仅列该分类下可选商品(后端已排除已在推荐位的)
+  const BANNER_PRODUCTS = {{ products_by_category | tojson }};
+  const catSel = document.getElementById('banner-cat');
+  const prodSel = document.getElementById('banner-prod');
+  catSel.addEventListener('change', function () {
+    const items = BANNER_PRODUCTS[this.value] || [];
+    prodSel.innerHTML = '';
+    if (!items.length) {
+      const o = document.createElement('option');
+      o.value = ''; o.textContent = this.value ? '(该分类无可选商品)' : '— 先选分类 —';
+      prodSel.appendChild(o);
+      return;
+    }
+    items.forEach(function (p) {
+      const o = document.createElement('option');
+      o.value = p.id; o.textContent = p.name;
+      prodSel.appendChild(o);
+    });
+  });
+</script>
 <table class="table bg-white align-middle">
   <thead><tr><th>顺序</th><th>商品</th><th>价格</th><th>操作</th></tr></thead>
   <tbody>

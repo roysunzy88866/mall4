@@ -39,13 +39,19 @@
 - **位置**:`server/api/routes.py` 的 `_product_json`(不含 image 字段);车机 `ui/components/ProductCard.kt` 用占位图块。
 - **问题**:`/api/home` 的 recommended 与 `/api/categories/{id}/products` 不返回商品图 URL,故车机商品卡只能显示占位图标。当前 seed 商品图本就是 `placeholder.png`,视觉无差;但若日后要卡片显示真实商品图,需后端 list 接口补 `image`(取商品主图)字段。
 - **修复**:后端 `_product_json` 增 `image`(商品主图 URL);车机 `ProductDto`/`Product` 加 imageUrl 并在卡片用 Coil 加载。属后端改动,留后续 change。
-- **状态**:⏳ 未闭合。**留待用户提供真实商品图后一并做**(当前 seed 图全是 1×1 占位 `placeholder.png`,补了 list 接口返图也只会显示透明占位、视觉反而更差;有真实图素材后:后端 list 接口补 `image` 字段 + 车机卡片用 Coil 加载,一次到位)。
+- **状态**:✅ 闭合(2026-06-04,change `product-images-and-catalog-ux`:后端 `_product_json` 增 `image` 主图字段、列表两接口带图;车机 `Product.imageUrl` + `ProductCard` 用 Coil `AsyncImage` 加载、无图回退占位;集成测试 `test_home_recommended_includes_main_image` / `test_category_products_include_main_image` / `test_product_without_image_returns_null_image` + 车机 `MappersTest` 钉住。真实图经 ops 步骤挂到公网现有商品)。
 
 ## DEBT-2026-06-008 · 车机字体用系统回退(非 Oxanium/Noto)🟢 MINOR
 - **位置**:`android/app/.../ui/theme/Type.kt` 的 `BodyFamily`/`NumberFamily`。
 - **问题**:设计稿要 Oxanium(数字)+ Noto Sans SC(中文),但本机无字体文件、沙箱网络取不到,暂用系统 sans-serif + Monospace 回退(CJK 回退设计 README 已许可;数字字体为次要视觉)。
 - **修复**:把 Oxanium / Noto Sans SC 的 `.ttf` 放进 `android/app/src/main/assets/fonts/`,在 `Type.kt` 把 `BodyFamily`/`NumberFamily` 指过去(单点切换,已留好)。
 - **状态**:⏳ 未闭合(见 car-storefront-browse design.md D10)。**阻塞:需 Oxanium / Noto Sans SC 的 `.ttf` 文件**(此前沙箱网络取不到)。把文件放进 `android/app/src/main/assets/fonts/`,`Type.kt` 的 `BodyFamily`/`NumberFamily` 指过去即可(单点切换已留好)。用户可提供或允许联网下载。
+
+## DEBT-2026-06-011 · 后台编辑商品会清空描述 🟠 MAJOR
+- **位置**:`server/admin/templates/products.html` 编辑表单;`server/admin/views.py:product_update`。
+- **问题**:商品编辑表单**没有描述输入框**,但 `product_update` 读 `request.form.get("description", "")` 并写库 → 每次「保存」都把该商品描述清成空串。新建表单有描述、编辑没有,属遗漏。
+- **修复**:编辑表单补 `description` 输入(预填 `p.description`);或 service 在 description 缺省时不覆盖。
+- **状态**:⏳ 未闭合(2026-06-04 在做 `product-images-and-catalog-ux` 时发现,非本刀范围,未顺手改)。建议下一刀或用户确认后修。
 
 ## DEBT-2026-06-010 · 品牌域名 mall4 未启用,现用 mall4-admin 🟢 MINOR · 计划内
 - **位置**:公网部署 / `android/app/build.gradle.kts` release / 共识 §3 F6。

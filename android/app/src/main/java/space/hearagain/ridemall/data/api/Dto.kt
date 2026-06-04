@@ -13,6 +13,7 @@ data class ProductDto(
     @Json(name = "price_cents") val priceCents: Int,
     val description: String?,
     @Json(name = "category_id") val categoryId: Int,
+    val image: String? = null,
 )
 
 data class BannerDto(

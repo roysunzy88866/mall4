@@ -54,6 +54,31 @@ def test_update_product_price(admin_client, conn):
     assert conn.execute("SELECT price_cents FROM products WHERE id=1").fetchone()["price_cents"] == 999
 
 
+def test_update_product_replaces_image(admin_client, conn):
+    # 商品 1 原有占位图;编辑上传新图 → 主图被替换(仍只有一张,且非占位)
+    admin_client.post(
+        "/admin/products/1/update",
+        data={
+            "name": "车载充电头", "category_id": "1", "price": "9.99", "stock": "3",
+            "image": (io.BytesIO(b"newpngbytes"), "new.png"),
+        },
+        content_type="multipart/form-data",
+    )
+    imgs = conn.execute("SELECT url FROM product_images WHERE product_id=1").fetchall()
+    assert len(imgs) == 1
+    assert imgs[0]["url"].startswith("/uploads/") and imgs[0]["url"] != "/uploads/placeholder.png"
+
+
+def test_update_product_without_image_keeps_original(admin_client, conn):
+    before = [r["url"] for r in conn.execute("SELECT url FROM product_images WHERE product_id=1").fetchall()]
+    admin_client.post(
+        "/admin/products/1/update",
+        data={"name": "车载充电头", "category_id": "1", "price": "9.99", "stock": "3"},
+    )
+    after = [r["url"] for r in conn.execute("SELECT url FROM product_images WHERE product_id=1").fetchall()]
+    assert after == before  # 未传图 → 原主图不变
+
+
 def test_delete_product(admin_client, conn):
     _create(admin_client, name="待删商品")
     pid = conn.execute("SELECT id FROM products WHERE name='待删商品'").fetchone()["id"]

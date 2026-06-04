@@ -71,10 +71,13 @@ def create_product(conn, name, price_yuan, description, stock, category_id, now,
     return pid
 
 
-def update_product(conn, product_id, name, price_yuan, description, stock, category_id) -> None:
+def update_product(conn, product_id, name, price_yuan, description, stock, category_id, image_url=None) -> None:
     price_cents = _to_cents(price_yuan)
     with conn:
         repo.update_product(conn, product_id, name, price_cents, description, stock, category_id)
+        if image_url:  # 传了新图 = 替换主图(覆盖旧图);未传则保持原图
+            repo.delete_product_images(conn, product_id)
+            repo.insert_product_image(conn, product_id, image_url, 0)
 
 
 def delete_product(conn, product_id: int) -> None:
