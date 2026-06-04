@@ -110,14 +110,27 @@ def test_delete_product(admin_client, conn):
     assert conn.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone() is None
 
 
-def test_delete_ordered_product_keeps_order_snapshot(admin_client, conn):
-    # D8:删被订单买过的商品 → 允许,订单整单快照不受影响
+def test_toggle_product_delist_then_relist(admin_client, conn):
+    # 下架 → is_active=0 且对顾客隐藏(详情 404);再上架 → 恢复
+    admin_client.post("/admin/products/1/toggle?active=0")
+    assert conn.execute("SELECT is_active FROM products WHERE id=1").fetchone()["is_active"] == 0
+    assert admin_client.get("/api/products/1").status_code == 404
+    admin_client.post("/admin/products/1/toggle?active=1")
+    assert conn.execute("SELECT is_active FROM products WHERE id=1").fetchone()["is_active"] == 1
+    assert admin_client.get("/api/products/1").status_code == 200
+
+
+def test_delete_ordered_product_blocked_use_delist(admin_client, conn):
+    # 删除改下架:被订单买过的商品不许永久删除,改走下架;历史快照不受影响
     admin_client.post(
         "/api/orders",
         json={"items": [{"product_id": 1, "name": "车载充电头", "image": "/uploads/placeholder.png", "price_cents": 3900, "qty": 1}]},
         headers={"X-Device-Id": "dev-x"},
     )
-    admin_client.post("/admin/products/1/delete")
-    assert admin_client.get("/api/products/1").status_code == 404  # 商品已下架
+    admin_client.post("/admin/products/1/delete")  # 被拒
+    assert conn.execute("SELECT 1 FROM products WHERE id=1").fetchone() is not None  # 没被删
+    # 改走下架后对顾客隐藏,但订单快照仍在
+    admin_client.post("/admin/products/1/toggle?active=0")
+    assert admin_client.get("/api/products/1").status_code == 404
     item = admin_client.get("/api/orders", headers={"X-Device-Id": "dev-x"}).get_json()[0]["items"][0]
     assert item["name"] == "车载充电头" and item["price_cents"] == 3900  # 快照仍在

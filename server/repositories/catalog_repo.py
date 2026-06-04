@@ -14,7 +14,7 @@ def _product(row) -> Product:
         id=row["id"], name=row["name"], price_cents=row["price_cents"],
         description=row["description"], stock=row["stock"],
         category_id=row["category_id"], sort_order=row["sort_order"],
-        created_at=row["created_at"],
+        created_at=row["created_at"], is_active=bool(row["is_active"]),
     )
 
 
@@ -51,6 +51,18 @@ def products_by_category(conn, category_id: int) -> list[Product]:
 def product_by_id(conn, product_id: int) -> Product | None:
     row = conn.execute("SELECT * FROM products WHERE id=?", (product_id,)).fetchone()
     return _product(row) if row else None
+
+
+def listed_product_ids(conn, product_ids: list[int]) -> set[int]:
+    """给定一批 product_id,返回其中『存在且在架』的 id 集合(下单可用性校验用)。"""
+    ids = [pid for pid in product_ids if pid is not None]
+    if not ids:
+        return set()
+    placeholders = ",".join("?" * len(ids))
+    rows = conn.execute(
+        f"SELECT id FROM products WHERE is_active=1 AND id IN ({placeholders})", ids
+    ).fetchall()
+    return {r["id"] for r in rows}
 
 
 def images_for_product(conn, product_id: int) -> list[ProductImage]:

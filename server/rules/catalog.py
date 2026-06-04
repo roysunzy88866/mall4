@@ -18,6 +18,11 @@ def filter_active_category_products(
     return [p for p in products if p.category_id in active]
 
 
+def filter_listed(products: list[Product]) -> list[Product]:
+    """剔除下架商品(对顾客只留 is_active=True 的在架商品)。"""
+    return [p for p in products if p.is_active]
+
+
 def description_excerpt(text: str | None, max_len: int = EXCERPT_MAX) -> str:
     """描述节选(供 Banner 文案用)。"""
     text = (text or "").strip()

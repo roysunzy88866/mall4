@@ -1,11 +1,15 @@
 package space.hearagain.ridemall.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -28,6 +32,7 @@ import space.hearagain.ridemall.ui.category.CategoryScreen
 import space.hearagain.ridemall.ui.checkout.ConfirmScreen
 import space.hearagain.ridemall.ui.checkout.PayOverlay
 import space.hearagain.ridemall.ui.checkout.SuccessOverlay
+import space.hearagain.ridemall.ui.common.DelistNoticeOverlay
 import space.hearagain.ridemall.ui.common.NetworkErrorOverlay
 import space.hearagain.ridemall.ui.detail.DetailScreen
 import space.hearagain.ridemall.ui.home.HomeScreen
@@ -90,9 +95,7 @@ fun StoreScreen(
                         onAddToCart = { viewModel.addDetailToCart(content.detail) },
                         onBuyNow = { viewModel.buyNow(content.detail) },
                     )
-                    is ContentState.DetailUnavailable -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("商品已下架", style = RmType.EmptyText, color = RmColor.Text2)
-                    }
+                    is ContentState.DetailUnavailable -> UnavailableView(onBack = viewModel::backFromDetail)
                     is ContentState.CartView -> CartScreen(
                         cart = state.cart,
                         onBack = viewModel::backFromCart,
@@ -135,6 +138,11 @@ fun StoreScreen(
                 NetworkErrorOverlay(onRetry = viewModel::retry)
             }
         }
+
+        // 下单遇「商品已下架」(409)的提示,盖在最上层
+        if (state.delistNotice) {
+            DelistNoticeOverlay(onDismiss = viewModel::dismissDelistNotice)
+        }
     }
 }
 
@@ -142,5 +150,26 @@ fun StoreScreen(
 private fun LoadingView() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CircularProgressIndicator(color = RmColor.Accent, strokeWidth = 4.dp)
+    }
+}
+
+/** 商品不可用(已下架/不存在)态:居中提示 +「返回」出口,避免死页。 */
+@Composable
+private fun UnavailableView(onBack: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("商品已下架", style = RmType.EmptyText, color = RmColor.Text2)
+            Spacer(Modifier.height(28.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .border(1.dp, RmColor.AccentLine, RoundedCornerShape(14.dp))
+                    .background(RmColor.AccentSoft)
+                    .clickable(onClick = onBack)
+                    .padding(horizontal = 40.dp, vertical = 16.dp),
+            ) {
+                Text("返回", style = RmType.ButtonText, color = RmColor.Accent)
+            }
+        }
     }
 }

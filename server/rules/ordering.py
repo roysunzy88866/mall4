@@ -8,6 +8,13 @@ def order_total(items: list[OrderLineInput]) -> int:
     return sum(it.price_cents * it.qty for it in items)
 
 
+def unavailable_items(
+    items: list[OrderLineInput], available_ids: set[int]
+) -> list[OrderLineInput]:
+    """挑出不可用的行项:商品不存在或已下架(其 product_id 不在『存在且在架』集合里)。"""
+    return [it for it in items if it.product_id not in available_ids]
+
+
 def order_input_errors(device_id: str | None, items: list[OrderLineInput]) -> list[str]:
     """下单入参校验(纯函数);返回问题列表,空 = 合法。"""
     errors: list[str] = []

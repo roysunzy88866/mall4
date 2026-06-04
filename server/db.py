@@ -22,12 +22,22 @@ _ORDER_MIGRATIONS = {
     "cancelled_at": "ALTER TABLE orders ADD COLUMN cancelled_at TEXT",
 }
 
+# 商品上架状态(product-delisting):老库平滑补列,默认 1=在架(存量不受影响)。
+_PRODUCT_MIGRATIONS = {
+    "is_active": "ALTER TABLE products ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1",
+}
 
-def _migrate(conn: sqlite3.Connection) -> None:
-    cols = {r["name"] for r in conn.execute("PRAGMA table_info(orders)").fetchall()}
-    for col, ddl in _ORDER_MIGRATIONS.items():
+
+def _add_missing_columns(conn: sqlite3.Connection, table: str, migrations: dict[str, str]) -> None:
+    cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    for col, ddl in migrations.items():
         if col not in cols:
             conn.execute(ddl)
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    _add_missing_columns(conn, "orders", _ORDER_MIGRATIONS)
+    _add_missing_columns(conn, "products", _PRODUCT_MIGRATIONS)
     # clock_base_at 默认回填为 created_at(老订单)
     conn.execute(
         "UPDATE orders SET clock_base_at = created_at WHERE clock_base_at IS NULL"

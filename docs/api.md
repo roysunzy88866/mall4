@@ -49,11 +49,12 @@
   - `can_cancel` / `can_return` = 当前是否允许取消 / 退货(车机据此显隐按钮)。
 
 **错误**(统一 JSON `{error}`)
-- `/products/{id}` 商品不存在 → `404 {"error":"商品已下架"}`。
+- `/products/{id}` 商品不存在**或已下架** → `404 {"error":"商品已下架"}`。
 - `POST /orders` 缺设备号 / 无商品 / 字段非法 → `400 {"error": "..."}`。
+- `POST /orders` 含**不存在 / 已下架**的商品 → `409 {"error":"商品已下架","unavailable":[{id,name}...]}`,整单不创建。车机据此提示「已下架」并移出购物车(区别于网络异常)。
 - `/orders/{id}` 不存在 → `404`。
 - 取消 / 退货失败按业务码映射:`not_found→404`、`forbidden→403`(非本设备)、`conflict→409`(状态不允许,如已签收不能取消、超 7 天不能退)、`bad_request→400`。
-- 车机遇任何失败 → 全屏「网络异常」,不缓存。
+- 车机遇下单 `409`「商品已下架」→ 专门提示 + 移出购物车 + 退回购物车;其余失败 → 全屏「网络异常」(可重试),不缓存。
 
 ---
 
@@ -77,7 +78,8 @@
 | GET | `/admin/products` | 商品列表 |
 | POST | `/admin/products/create` | 新建(`name/price/description/stock/category_id` + 选传 `image`;价格非法/缺名缺分类 → 拒绝) |
 | POST | `/admin/products/{id}/update` | 修改(同上字段) |
-| POST | `/admin/products/{id}/delete` | 删除(被订单引用也可删,老订单快照不受影响) |
+| POST | `/admin/products/{id}/toggle` | 下架/上架(`active=1/0`,经查询参数;下架=对顾客隐藏) |
+| POST | `/admin/products/{id}/delete` | **受限永久删除**:仅无订单引用时可删;被订单引用 → 拒绝并提示改为下架 |
 | **推荐位** | | |
 | GET | `/admin/banners` | 推荐位列表 + 可选商品 |
 | POST | `/admin/banners/add` | 加入(`product_id`;超 5 个 → 拒绝) |

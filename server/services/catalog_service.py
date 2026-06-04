@@ -30,13 +30,14 @@ class ProductDetail:
 def home_data(conn) -> HomeData:
     active_ids = repo.active_category_ids(conn)
     active_set = set(active_ids)
-    visible = rules.filter_active_category_products(repo.all_products(conn), active_ids)
+    in_category = rules.filter_active_category_products(repo.all_products(conn), active_ids)
+    visible = rules.filter_listed(in_category)  # 下架商品不进推荐
     recommended = rules.sort_recommended(visible)
     banner_views: list[BannerView] = []
     for b in repo.banners(conn):
         product = repo.product_by_id(conn, b.product_id)
-        # DEBT-001 修复:停用分类下的商品也不进 banner
-        if product is None or product.category_id not in active_set:
+        # 停用分类下(DEBT-001)或已下架的商品都不进 banner
+        if product is None or product.category_id not in active_set or not product.is_active:
             continue
         images = repo.images_for_product(conn, product.id)
         main_url = images[0].url if images else None
@@ -49,7 +50,7 @@ def nav_categories(conn) -> list[Category]:
 
 
 def category_products(conn, category_id: int) -> list[Product]:
-    return repo.products_by_category(conn, category_id)
+    return rules.filter_listed(repo.products_by_category(conn, category_id))  # 下架商品不进分类列表
 
 
 def main_image_urls(conn, products) -> dict[int, str | None]:
@@ -63,6 +64,6 @@ def main_image_urls(conn, products) -> dict[int, str | None]:
 
 def product_detail(conn, product_id: int) -> ProductDetail:
     product = repo.product_by_id(conn, product_id)
-    if product is None:
+    if product is None or not product.is_active:  # 下架商品对顾客等同查不到
         raise ProductNotFound(product_id)
     return ProductDetail(product=product, images=repo.images_for_product(conn, product_id))

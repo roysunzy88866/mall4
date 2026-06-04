@@ -38,6 +38,24 @@ def test_place_order_empty_items(client):
     assert client.post("/api/orders", json={"items": []}, headers=DEV_A).status_code == 400
 
 
+def test_place_order_rejects_delisted(client, conn):
+    conn.execute("UPDATE products SET is_active=0 WHERE id=1")
+    conn.commit()
+    before = conn.execute("SELECT COUNT(*) c FROM orders").fetchone()["c"]
+    r = client.post("/api/orders", json=_body(product_id=1), headers=DEV_A)
+    assert r.status_code == 409
+    data = r.get_json()
+    assert data["error"] == "商品已下架"
+    assert any(u["id"] == 1 for u in data["unavailable"])
+    assert conn.execute("SELECT COUNT(*) c FROM orders").fetchone()["c"] == before  # 不建单
+
+
+def test_place_order_rejects_deleted_missing(client):
+    r = client.post("/api/orders", json=_body(product_id=999999), headers=DEV_A)
+    assert r.status_code == 409
+    assert r.get_json()["error"] == "商品已下架"
+
+
 def test_orders_by_device_newest_first(client):
     client.post("/api/orders", json=_body(name="第一单"), headers=DEV_A)
     client.post("/api/orders", json=_body(name="第二单"), headers=DEV_A)

@@ -21,6 +21,7 @@ class Product:
     category_id: int
     sort_order: int
     created_at: str
+    is_active: bool = True  # 上架状态:True=对顾客可见, False=下架隐藏
 
 
 @dataclass(frozen=True)

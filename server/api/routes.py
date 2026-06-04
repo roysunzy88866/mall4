@@ -152,6 +152,11 @@ def create_order():
         created = order_svc.place_order(_conn(), device_id, items, _now())
     except order_svc.InvalidOrder as e:
         return jsonify({"error": "; ".join(e.errors)}), 400
+    except order_svc.ProductUnavailable as e:
+        return jsonify({
+            "error": "商品已下架",
+            "unavailable": [{"id": it.product_id, "name": it.name} for it in e.items],
+        }), 409
     return jsonify(_order_json(created)), 201
 
 

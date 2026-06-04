@@ -34,6 +34,16 @@ def test_filter_active_category_products():
     assert [p.id for p in out] == [1]
 
 
+def test_filter_listed_drops_delisted():
+    listed = _p(1, "t")  # is_active 默认 True
+    delisted = Product(
+        id=2, name="下架品", price_cents=100, description="", stock=0,
+        category_id=1, sort_order=0, created_at="t", is_active=False,
+    )
+    out = rules.filter_listed([listed, delisted])
+    assert [p.id for p in out] == [1]
+
+
 def test_description_excerpt_short_unchanged():
     assert rules.description_excerpt("短描述") == "短描述"
 

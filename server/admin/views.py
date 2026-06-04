@@ -218,10 +218,21 @@ def product_update(product_id):
     return redirect(url_for("admin.products_page"))
 
 
+@bp.post("/products/<int:product_id>/toggle")
+@login_required
+def product_toggle(product_id):
+    # active 经查询参数传(让「上架/下架」按钮能内嵌在编辑表单里用 formaction,无需嵌套表单)
+    cat_svc.toggle_product_active(_conn(), product_id, request.values.get("active") == "1")
+    return redirect(url_for("admin.products_page"))
+
+
 @bp.post("/products/<int:product_id>/delete")
 @login_required
 def product_delete(product_id):
-    cat_svc.delete_product(_conn(), product_id)
+    try:
+        cat_svc.delete_product(_conn(), product_id)
+    except cat_svc.ProductDeleteBlocked:
+        return redirect(url_for("admin.products_page", error="该商品已有订单,不能永久删除,请改为下架"))
     return redirect(url_for("admin.products_page"))
 
 

@@ -14,6 +14,10 @@ class InvalidPrice(Exception):
     """价格非法(接口层翻成提示)。"""
 
 
+class ProductDeleteBlocked(Exception):
+    """商品已被订单引用,不许永久删除(接口层翻成提示『请改为下架』)。"""
+
+
 def _to_cents(price_yuan) -> int:
     try:
         return money.yuan_to_cents(price_yuan)
@@ -80,7 +84,15 @@ def update_product(conn, product_id, name, price_yuan, description, stock, categ
             repo.insert_product_image(conn, product_id, image_url, 0)
 
 
+def toggle_product_active(conn, product_id: int, active: bool) -> None:
+    with conn:
+        repo.set_product_active(conn, product_id, active)
+
+
 def delete_product(conn, product_id: int) -> None:
+    # 受限永久删除:被订单引用过的商品不许硬删,改走下架(保护历史快照与可逆性)
+    if repo.product_has_order_refs(conn, product_id):
+        raise ProductDeleteBlocked()
     with conn:
         repo.delete_product(conn, product_id)
 

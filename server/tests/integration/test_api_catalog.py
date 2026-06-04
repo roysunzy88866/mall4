@@ -98,3 +98,44 @@ def test_product_without_image_returns_null_image(client, conn):
     items = client.get("/api/categories/1/products").get_json()
     noimg = next(p for p in items if p["name"] == "无图商品")
     assert noimg["image"] is None
+
+
+# ---- 下架商品对顾客不可见(product-delisting) ----
+def test_home_recommended_excludes_delisted(client, conn):
+    conn.execute("UPDATE products SET is_active=0 WHERE id=1")
+    conn.commit()
+    rec_ids = [p["id"] for p in client.get("/api/home").get_json()["recommended"]]
+    assert 1 not in rec_ids
+
+
+def test_home_banner_excludes_delisted(client, conn):
+    pid = client.get("/api/home").get_json()["banners"][0]["product_id"]
+    conn.execute("UPDATE products SET is_active=0 WHERE id=?", (pid,))
+    conn.commit()
+    banners = client.get("/api/home").get_json()["banners"]
+    assert all(b["product_id"] != pid for b in banners)
+
+
+def test_category_products_excludes_delisted(client, conn):
+    conn.execute("UPDATE products SET is_active=0 WHERE id=1")
+    conn.commit()
+    ids = [p["id"] for p in client.get("/api/categories/1/products").get_json()]
+    assert 1 not in ids
+
+
+def test_product_detail_delisted_returns_404(client, conn):
+    conn.execute("UPDATE products SET is_active=0 WHERE id=1")
+    conn.commit()
+    resp = client.get("/api/products/1")
+    assert resp.status_code == 404
+    assert resp.get_json()["error"] == "商品已下架"
+
+
+def test_relist_restores_visibility(client, conn):
+    conn.execute("UPDATE products SET is_active=0 WHERE id=1")
+    conn.commit()
+    assert client.get("/api/products/1").status_code == 404
+    conn.execute("UPDATE products SET is_active=1 WHERE id=1")
+    conn.commit()
+    assert client.get("/api/products/1").status_code == 200
+    assert 1 in [p["id"] for p in client.get("/api/home").get_json()["recommended"]]

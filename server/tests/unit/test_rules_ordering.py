@@ -35,3 +35,14 @@ def test_order_input_errors_bad_price():
 def test_order_input_errors_bad_qty():
     assert "数量非法" in rules.order_input_errors("dev-1", [_line(qty=0)])
     assert "数量非法" in rules.order_input_errors("dev-1", [_line(qty=None)])
+
+
+def test_unavailable_items_all_available_is_empty():
+    items = [_line(product_id=1), _line(product_id=2)]
+    assert rules.unavailable_items(items, {1, 2}) == []
+
+
+def test_unavailable_items_flags_delisted_and_missing():
+    a, b, c = _line(product_id=1), _line(product_id=2), _line(product_id=None)
+    out = rules.unavailable_items([a, b, c], {1})  # 2=下架, None=查无
+    assert [it.product_id for it in out] == [2, None]

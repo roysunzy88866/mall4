@@ -21,6 +21,7 @@ import space.hearagain.ridemall.model.OrderDraft
 import space.hearagain.ridemall.model.Product
 import space.hearagain.ridemall.model.ProductDetail
 import space.hearagain.ridemall.util.addToCart
+import space.hearagain.ridemall.util.parseUnavailableIds
 import space.hearagain.ridemall.util.removeItem
 import space.hearagain.ridemall.util.selectedToOrderItems
 import space.hearagain.ridemall.util.setAllSelected
@@ -69,6 +70,7 @@ data class StoreUiState(
     val payTimedOut: Boolean = false,
     val payError: Boolean = false,
     val placing: Boolean = false,
+    val delistNotice: Boolean = false,  // 下单遇「商品已下架」(409)后的提示
 )
 
 /**
@@ -233,9 +235,29 @@ class StoreViewModel(private val repo: StoreRepository) : ViewModel() {
                         )
                     }
                 }
-                .onFailure { _state.update { it.copy(placing = false, payError = true) } }
+                .onFailure { e ->
+                    // 409「商品已下架」:区别于普通网络故障 —— 关支付层、移出已下架商品、退回购物车、弹提示
+                    if (e is HttpException && e.code() == 409) {
+                        countdownJob?.cancel()
+                        val gone = parseUnavailableIds(e.response()?.errorBody()?.string()).toSet()
+                        _state.update {
+                            it.copy(
+                                placing = false,
+                                overlay = Overlay.None,
+                                route = Route.Cart,
+                                content = ContentState.CartView,
+                                cart = it.cart.filterNot { c -> c.productId in gone },
+                                delistNotice = true,
+                            )
+                        }
+                    } else {
+                        _state.update { it.copy(placing = false, payError = true) }
+                    }
+                }
         }
     }
+
+    fun dismissDelistNotice() = _state.update { it.copy(delistNotice = false) }
 
     fun finishSuccess() {
         _state.update { it.copy(overlay = Overlay.None) }

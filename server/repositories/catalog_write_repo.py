@@ -14,7 +14,7 @@ def _product(row) -> Product:
         id=row["id"], name=row["name"], price_cents=row["price_cents"],
         description=row["description"], stock=row["stock"],
         category_id=row["category_id"], sort_order=row["sort_order"],
-        created_at=row["created_at"],
+        created_at=row["created_at"], is_active=bool(row["is_active"]),
     )
 
 
@@ -82,6 +82,17 @@ def update_product(conn, product_id, name, price_cents, description, stock, cate
         "UPDATE products SET name=?, price_cents=?, description=?, stock=?, category_id=? WHERE id=?",
         (name, price_cents, description, stock, category_id, product_id),
     )
+
+
+def set_product_active(conn, product_id: int, active: bool) -> None:
+    conn.execute("UPDATE products SET is_active=? WHERE id=?", (1 if active else 0, product_id))
+
+
+def product_has_order_refs(conn, product_id: int) -> bool:
+    """该商品是否被任一订单行项引用过(受限永久删除用)。"""
+    return conn.execute(
+        "SELECT 1 FROM order_items WHERE product_id=? LIMIT 1", (product_id,)
+    ).fetchone() is not None
 
 
 def insert_product_image(conn, product_id: int, url: str, sort_order: int) -> None:
