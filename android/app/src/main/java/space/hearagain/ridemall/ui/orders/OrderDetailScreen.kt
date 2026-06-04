@@ -41,7 +41,7 @@ import space.hearagain.ridemall.ui.theme.RmColor
 import space.hearagain.ridemall.ui.theme.RmDimens
 import space.hearagain.ridemall.ui.theme.RmType
 import space.hearagain.ridemall.util.STAGE_LABELS
-import space.hearagain.ridemall.util.stageIndexOf
+import space.hearagain.ridemall.util.displayStageOf
 
 @Composable
 fun OrderDetailScreen(
@@ -51,7 +51,7 @@ fun OrderDetailScreen(
     onRequestReturn: (reason: String, note: String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val stage = stageIndexOf(order.status)
+    val stage = displayStageOf(order.status)
     var showReturnForm by remember(order.id, order.status) { mutableStateOf(false) }
     // 待确认动作(弹框「是否要做」):(提示文案, 执行)
     var pending by remember(order.id, order.status) { mutableStateOf<Pair<String, () -> Unit>?>(null) }
@@ -113,23 +113,24 @@ fun OrderDetailScreen(
             Spacer(Modifier.height(20.dp))
         }
 
-        // 状态步条(4 节点)
-        Card {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                STAGE_LABELS.forEachIndexed { i, label ->
-                    val done = stage in 0..i || stage > i
-                    val reached = stage >= i && stage >= 0
-                    StepNode(index = i, label = label, done = reached)
-                    if (i < STAGE_LABELS.lastIndex) {
-                        Box(
-                            Modifier.weight(1f).height(3.dp).padding(horizontal = 6.dp)
-                                .background(if (stage > i) RmColor.Accent else RmColor.Line),
-                        )
+        // 状态步条(4 节点);取消等分支态(stage<0)不画主步条,只靠顶部徽章显态
+        if (stage >= 0) {
+            Card {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    STAGE_LABELS.forEachIndexed { i, label ->
+                        val reached = stage >= i
+                        StepNode(index = i, label = label, done = reached)
+                        if (i < STAGE_LABELS.lastIndex) {
+                            Box(
+                                Modifier.weight(1f).height(3.dp).padding(horizontal = 6.dp)
+                                    .background(if (stage > i) RmColor.Accent else RmColor.Line),
+                            )
+                        }
                     }
                 }
             }
+            Spacer(Modifier.height(20.dp))
         }
-        Spacer(Modifier.height(20.dp))
 
         // 物流时间线
         if (order.logistics.isNotEmpty()) {

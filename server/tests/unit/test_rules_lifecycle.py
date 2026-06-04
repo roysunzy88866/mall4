@@ -43,9 +43,12 @@ def test_logistics_nodes():
     assert [n["reached"] for n in delivering] == [True, True, True, False]
     delivered = lc.logistics_nodes("delivered")
     assert all(n["reached"] for n in delivered)
-    # 分支状态按未发货(只点亮已下单)
+    # 取消(途中):只点亮已下单
     cancelled = lc.logistics_nodes("cancelled")
     assert [n["reached"] for n in cancelled] == [True, False, False, False]
+    # 退货类(曾已签收):物流全程已到达
+    for s in ("return_review", "returning", "refunded", "return_rejected"):
+        assert all(n["reached"] for n in lc.logistics_nodes(s)), s
     assert paid[0]["label"] == "已下单"
 
 

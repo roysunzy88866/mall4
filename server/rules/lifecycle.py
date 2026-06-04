@@ -69,8 +69,11 @@ def is_auto(status: str) -> bool:
 
 def logistics_nodes(status: str) -> list[dict]:
     """物流节点的标签 + 是否已到达(已到达 = 当前阶段序 ≥ 节点序)。
-    时间由 service 按推进基准 + 序×步长补上。分支状态(idx<0)按未发货处理。"""
+    时间由 service 按推进基准 + 序×步长补上。
+    分支态:退货类曾已签收 → 物流全程到达;取消类途中 → 仅「已下单」。"""
     idx = stage_index(status)
-    if idx < 0:
+    if status in ("return_review", "returning", "refunded", "return_rejected"):
+        idx = 3  # 退货发生在签收后,物流早已走完
+    elif idx < 0:
         idx = 0
     return [{"label": LOGISTICS_LABELS[i], "reached": idx >= i} for i in range(4)]
