@@ -19,6 +19,11 @@
 
 {% for p in products %}
 <form method="post" class="card mb-2" enctype="multipart/form-data"><div class="card-body row g-2 align-items-center">
+  <div class="col-auto">
+    {% set img = images.get(p.id) %}
+    {% if img %}<img src="{{ img }}" alt="主图" style="height:44px;width:44px;object-fit:cover;border-radius:6px;background:#eee">
+    {% else %}<span class="text-muted small">无图</span>{% endif %}
+  </div>
   <div class="col"><input class="form-control form-control-sm" name="name" value="{{ p.name }}"></div>
   <div class="col-auto">
     <select class="form-select form-select-sm" name="category_id">

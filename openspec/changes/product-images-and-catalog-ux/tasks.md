@@ -11,6 +11,7 @@
 - [x] 2.3 `admin_catalog_service.update_product` 加 `image_url=None` 参数:非空则先 `delete_product_images` 再 `insert_product_image`(sort_order=0),空则不动
 - [x] 2.4 `admin/views.py:product_update` 复用 `_save_image` 取图 + 校验 + 传入 service;`templates/products.html` 编辑表单加 `enctype=multipart/form-data` + `<input type=file name=image>`
 - [x] 2.5 转绿 + 既有商品 CRUD 集成测试不回归
+- [x] 2.6 后台商品列表显示当前主图缩略图(`products_page` 传 images + `products.html` 渲染 `<img>`);测试 `test_products_page_shows_image_preview`
 
 ## 3. 后端 · 推荐位先选分类再选商品(admin-console)
 

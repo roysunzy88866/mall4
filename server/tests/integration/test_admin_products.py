@@ -54,6 +54,15 @@ def test_update_product_price(admin_client, conn):
     assert conn.execute("SELECT price_cents FROM products WHERE id=1").fetchone()["price_cents"] == 999
 
 
+def test_products_page_shows_image_preview(admin_client, conn):
+    # 后台商品列表显示当前主图缩略图(<img>)
+    html = admin_client.get("/admin/products").get_data(as_text=True)
+    url = conn.execute(
+        "SELECT url FROM product_images WHERE product_id=1 ORDER BY sort_order, id LIMIT 1"
+    ).fetchone()["url"]
+    assert f'<img src="{url}"' in html
+
+
 def test_edit_form_prefills_description(admin_client, conn):
     # DEBT-011:编辑表单必须有描述输入且预填原描述,否则保存会清空描述
     html = admin_client.get("/admin/products").get_data(as_text=True)

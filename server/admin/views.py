@@ -159,9 +159,16 @@ def _save_image(file_storage):
 @login_required
 def products_page():
     conn = _conn()
+    products = cw.all_products_admin(conn)
+    # 每个商品的当前主图(供后台缩略图预览)
+    images = {}
+    for p in products:
+        imgs = cr.images_for_product(conn, p.id)
+        images[p.id] = imgs[0].url if imgs else None
     return render_template(
         "products.html",
-        products=cw.all_products_admin(conn),
+        products=products,
+        images=images,
         categories=cw.all_categories(conn),
         error=request.args.get("error"),
     )
