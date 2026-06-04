@@ -51,7 +51,7 @@
 - **位置**:`server/admin/templates/products.html` 编辑表单;`server/admin/views.py:product_update`。
 - **问题**:商品编辑表单**没有描述输入框**,但 `product_update` 读 `request.form.get("description", "")` 并写库 → 每次「保存」都把该商品描述清成空串。新建表单有描述、编辑没有,属遗漏。
 - **修复**:编辑表单补 `description` 输入(预填 `p.description`);或 service 在 description 缺省时不覆盖。
-- **状态**:⏳ 未闭合(2026-06-04 在做 `product-images-and-catalog-ux` 时发现,非本刀范围,未顺手改)。建议下一刀或用户确认后修。
+- **状态**:✅ 闭合(2026-06-04,`products.html` 编辑表单补 `description` 输入框预填原描述;集成测试 `test_edit_form_prefills_description` + `test_update_product_keeps_description` 钉住)。
 
 ## DEBT-2026-06-010 · 品牌域名 mall4 未启用,现用 mall4-admin 🟢 MINOR · 计划内
 - **位置**:公网部署 / `android/app/build.gradle.kts` release / 共识 §3 F6。

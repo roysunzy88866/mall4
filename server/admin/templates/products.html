@@ -28,6 +28,7 @@
   <div class="col-auto"><input class="form-control form-control-sm" name="price" value="{{ p.price_cents | yuan }}" style="width:7rem"></div>
   <div class="col-auto"><input class="form-control form-control-sm" name="stock" value="{{ p.stock }}" style="width:5rem"></div>
   <div class="col-auto"><input class="form-control form-control-sm" type="file" name="image" title="换主图(留空保持原图)"></div>
+  <div class="col-12"><input class="form-control form-control-sm" name="description" value="{{ p.description }}" placeholder="描述"></div>
   <div class="col-auto">
     <button class="btn btn-sm btn-outline-primary" type="submit" formaction="{{ url_for('admin.product_update', product_id=p.id) }}">保存</button>
     <button class="btn btn-sm btn-outline-danger" type="submit" formaction="{{ url_for('admin.product_delete', product_id=p.id) }}">删除</button>

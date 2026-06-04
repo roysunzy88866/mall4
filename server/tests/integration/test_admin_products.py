@@ -54,6 +54,21 @@ def test_update_product_price(admin_client, conn):
     assert conn.execute("SELECT price_cents FROM products WHERE id=1").fetchone()["price_cents"] == 999
 
 
+def test_edit_form_prefills_description(admin_client, conn):
+    # DEBT-011:编辑表单必须有描述输入且预填原描述,否则保存会清空描述
+    html = admin_client.get("/admin/products").get_data(as_text=True)
+    desc = conn.execute("SELECT description FROM products WHERE id=1").fetchone()["description"]
+    assert desc and desc[:8] in html
+
+
+def test_update_product_keeps_description(admin_client, conn):
+    admin_client.post(
+        "/admin/products/1/update",
+        data={"name": "车载充电头", "category_id": "1", "price": "9.99", "stock": "3", "description": "新描述文案"},
+    )
+    assert conn.execute("SELECT description FROM products WHERE id=1").fetchone()["description"] == "新描述文案"
+
+
 def test_update_product_replaces_image(admin_client, conn):
     # 商品 1 原有占位图;编辑上传新图 → 主图被替换(仍只有一张,且非占位)
     admin_client.post(
